@@ -1,6 +1,8 @@
 .free-visual-novel.vn-fullscreen {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0; left: 0;
+  right: var(--sidebar-w, 0px);
+  bottom: 0;
   z-index: 40;
   background: transparent;
   pointer-events: none;
@@ -27,7 +29,6 @@
 .vn-content {
   position: absolute;
   inset: 0;
-  right: var(--sidebar-w, 0px);
   overflow: hidden;
   pointer-events: none;
 }
@@ -36,7 +37,6 @@
 .vn-bg {
   position: absolute;
   inset: 0;
-  right: var(--sidebar-w, 0px);
   pointer-events: none;
   background-size: cover;
   background-position: center;
