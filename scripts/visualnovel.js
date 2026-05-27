@@ -65,6 +65,9 @@ class VisualNovelApp extends AppBase {
     this._dragCleanup = null;
     this._selectedPortrait = null;
     this._currentLocationId = null;
+    this._broadcasting = false;
+    this._locGroupFilter = "";
+    this._portGroupFilter = "";
   }
 
   /* ── Init ── */
@@ -84,17 +87,26 @@ class VisualNovelApp extends AppBase {
     }));
 
     const speakerPortrait = this._portraits.find(p => p.id === this._speaker);
+    const allLocations = this._data?.locations || [];
+    const allPortraits = this._data?.portraits || [];
+    const locGroups = [...new Set(allLocations.map(l => l.group || "").filter(Boolean))];
+    const portGroups = [...new Set(allPortraits.map(p => p.group || "").filter(Boolean))];
     return {
       bg: this._hideBg ? "" : this._bg,
       hideUI: this._hideUI,
       portraits,
       speaker: speakerPortrait ? speakerPortrait.name : "",
       speakerId: this._speaker,
+      broadcasting: this._broadcasting,
       requests: this._requests,
       isGM: game.user?.isGM,
       showPanel: this._showPanel,
-      locations: this._data?.locations || [],
-      allPortraits: this._data?.portraits || [],
+      locations: allLocations,
+      allPortraits,
+      locGroupFilter: this._locGroupFilter,
+      portGroupFilter: this._portGroupFilter,
+      locGroups,
+      portGroups,
       selectedPortrait: this._selectedPortrait
     };
   }
@@ -149,6 +161,15 @@ class VisualNovelApp extends AppBase {
         this._hideUI = !this._hideUI;
         this.render();
       });
+      html.querySelector(".vn-btn-broadcast")?.addEventListener("click", () => {
+        this._broadcasting = !this._broadcasting;
+        if (this._broadcasting) {
+          _broadcastVNState(this, true);
+        } else {
+          game.socket?.emit(SOCKET, { type: "stop" });
+        }
+        this.render();
+      });
     }
 
     html.querySelector(".vn-btn-close")?.addEventListener("click", () => this.close());
@@ -191,6 +212,15 @@ class VisualNovelApp extends AppBase {
           const match = el.dataset.search?.toLowerCase().includes(q);
           el.style.display = match ? "" : "none";
         });
+      });
+    }
+
+    const groupSelect = html.querySelector(".vn-loc-group-filter");
+    if (groupSelect) {
+      groupSelect.value = this._locGroupFilter;
+      groupSelect.addEventListener("change", (ev) => {
+        this._locGroupFilter = ev.target.value;
+        this.render();
       });
     }
 
@@ -238,6 +268,7 @@ class VisualNovelApp extends AppBase {
         id: String(this._data.nextLocId++),
         name,
         background: form.querySelector(".vn-loc-f-bg")?.value?.trim() || "",
+        group: form.querySelector(".vn-loc-f-group")?.value?.trim() || "",
         tags: (form.querySelector(".vn-loc-f-tags")?.value?.trim() || "").split(",").map(s => s.trim()).filter(Boolean),
         parent: form.querySelector(".vn-loc-f-parent")?.value?.trim() || "",
         weather: form.querySelector(".vn-loc-f-weather")?.value?.trim() || ""
@@ -274,6 +305,15 @@ class VisualNovelApp extends AppBase {
           const match = el.dataset.search?.toLowerCase().includes(q);
           el.style.display = match ? "" : "none";
         });
+      });
+    }
+
+    const groupSelect = html.querySelector(".vn-port-group-filter");
+    if (groupSelect) {
+      groupSelect.value = this._portGroupFilter;
+      groupSelect.addEventListener("change", (ev) => {
+        this._portGroupFilter = ev.target.value;
+        this.render();
       });
     }
 
@@ -330,6 +370,7 @@ class VisualNovelApp extends AppBase {
         id: String(this._data.nextPortId++),
         name,
         title: form.querySelector(".vn-port-f-title")?.value?.trim() || "",
+        group: form.querySelector(".vn-port-f-group")?.value?.trim() || "",
         image: form.querySelector(".vn-port-f-img")?.value?.trim() || "",
         actorId: form.querySelector(".vn-port-f-actor")?.value?.trim() || ""
       };
@@ -502,10 +543,12 @@ class VisualNovelApp extends AppBase {
 /* ─────────────── Socket Broadcast ─────────────── */
 const SOCKET = "module.free-visual-novel";
 
-function _broadcastVNState(app) {
+function _broadcastVNState(app, force) {
   if (!game.user?.isGM) return;
+  if (!app._broadcasting && !force) return;
   game.socket?.emit(SOCKET, {
     type: "state",
+    broadcasting: app._broadcasting,
     bg: app._bg,
     portraits: app._portraits,
     speaker: app._speaker
@@ -514,6 +557,10 @@ function _broadcastVNState(app) {
 
 function _applyVNState(data) {
   if (game.user?.isGM) return;
+  if (!data.broadcasting) {
+    ui.freevisualnovel?.close();
+    return;
+  }
   let app = ui.freevisualnovel;
   if (!app) {
     app = new VisualNovelApp();
@@ -553,6 +600,7 @@ Hooks.once("init", async function() {
 
   game.socket?.on(SOCKET, (data) => {
     if (data?.type === "state") _applyVNState(data);
+    else if (data?.type === "stop") { ui.freevisualnovel?.close(); }
   });
 
   game.freevisualnovel = {
