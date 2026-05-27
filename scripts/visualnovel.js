@@ -145,6 +145,7 @@ class VisualNovelApp extends AppBase {
   _onRender(context, options) {
     super._onRender?.(context, options);
     this._adjustForSidebar();
+    if (this._dragCleanup) this._dragCleanup();
     if (this._showPanel === "locations") this._bindLocationPanel();
     else if (this._showPanel === "portraits") this._bindPortraitPanel();
     else if (this._showPanel === "scene") this._bindScenePanel();
@@ -607,6 +608,7 @@ class VisualNovelApp extends AppBase {
 
     const onClick = (ev) => {
       if (ev.target.closest(".vn-portrait-controls")) return;
+      if (ev.target.closest(".vn-dialog-box")) return;
       const el = ev.target.closest(".vn-portrait");
       if (!el) {
         this._selectedPortraitIdx = null;
