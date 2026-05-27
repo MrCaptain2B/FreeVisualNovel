@@ -1,3 +1,12 @@
+@keyframes vn-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes vn-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 .free-visual-novel.vn-fullscreen {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -6,6 +15,10 @@
   pointer-events: none;
   display: flex;
   align-items: stretch;
+  animation: vn-fade-in 0.3s ease;
+}
+.free-visual-novel.vn-fullscreen.vn-fading-out {
+  animation: vn-fade-out 0.25s ease forwards;
 }
 
 .free-visual-novel .window-content {
@@ -543,9 +556,7 @@
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  width: var(--dialog-w, 65%);
-  height: var(--dialog-h, 160px);
-  background: rgba(10,8,18, calc(var(--dialog-opacity, 0.85) * 0.85));
+  background: rgba(10,8,18,0.85);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
@@ -553,13 +564,6 @@
   pointer-events: none;
   z-index: 30;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
-}
-.vn-dialog-box.vn-dialog-visible {
-  opacity: var(--dialog-opacity, 0.85);
-  visibility: visible;
 }
 .vn-dialog-speaker {
   font-size: 0.85em;

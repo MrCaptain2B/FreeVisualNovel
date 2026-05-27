@@ -713,6 +713,13 @@ class VisualNovelApp extends AppBase {
     if (this._dragCleanup) this._dragCleanup();
     this.element?.classList.remove("vn-fullscreen-active");
   }
+
+  async close(options) {
+    if (!this.element) return super.close(options);
+    this.element.classList.add("vn-fading-out");
+    await new Promise(r => setTimeout(r, 250));
+    return super.close(options);
+  }
 }
 
 /* ─────────────── Socket Broadcast ─────────────── */
