@@ -543,7 +543,9 @@
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(10,8,18,0.85);
+  width: var(--dialog-w, 65%);
+  height: var(--dialog-h, 160px);
+  background: rgba(10,8,18, calc(var(--dialog-opacity, 0.85) * 0.85));
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
@@ -551,6 +553,13 @@
   pointer-events: none;
   z-index: 30;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+.vn-dialog-box.vn-dialog-visible {
+  opacity: var(--dialog-opacity, 0.85);
+  visibility: visible;
 }
 .vn-dialog-speaker {
   font-size: 0.85em;

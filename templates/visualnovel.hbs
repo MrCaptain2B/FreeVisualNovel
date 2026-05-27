@@ -215,14 +215,13 @@
   </div>
   {{/if}}
 
-  {{#if dialog.text}}
-  <div class="vn-dialog-box" style="width: {{dialog.width}}%; height: {{dialog.height}}px; opacity: {{dialog.opacity}}; text-align: {{dialog.align}};">
+  <div class="vn-dialog-box {{#if dialog.text}}vn-dialog-visible{{/if}}"
+       style="--dialog-w: {{dialog.width}}%; --dialog-h: {{dialog.height}}px; --dialog-opacity: {{dialog.opacity}}; text-align: {{dialog.align}};">
     {{#if speaker}}
     <div class="vn-dialog-speaker">{{speaker}}</div>
     {{/if}}
     <div class="vn-dialog-content">{{dialog.text}}</div>
   </div>
-  {{/if}}
 
   {{/unless}}
 
