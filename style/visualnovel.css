@@ -29,7 +29,6 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  right: var(--sidebar-w, 0px);
 }
 
 /* ── Background ── */
