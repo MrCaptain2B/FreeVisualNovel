@@ -1,9 +1,8 @@
 const _AppBase = foundry.applications?.api?.Application || foundry.applications?.api?.ApplicationV2;
-const _Mixin = foundry.applications?.api?.HandlebarsApplicationMixin;
 if (!_AppBase) {
   console.error("FreeVisualNovel | Application class not found. Requires Foundry V13+.");
 } else {
-  _defineModule(_Mixin ? _Mixin(_AppBase) : _AppBase);
+  _defineModule(_AppBase);
 }
 
 function _defineModule(AppBase) {
@@ -33,12 +32,21 @@ class VisualNovelApp extends AppBase {
     this._dragCleanup = null;
   }
 
-  _prepareContext() {
+  async _prepareContext() {
     return {
       state: this._vnState,
       current: this.currentScene,
       total: this.scenes.length - 1
     };
+  }
+
+  async _renderHTML(context, options) {
+    const path = "modules/free-visual-novel/templates/visualnovel.hbs";
+    return foundry.utils.renderTemplate(path, context);
+  }
+
+  _replaceHTML(result, content, options) {
+    content.innerHTML = result;
   }
 
   _prepareScene(index) {
