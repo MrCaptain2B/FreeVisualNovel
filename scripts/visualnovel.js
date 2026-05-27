@@ -132,18 +132,11 @@ class VisualNovelApp extends AppBase {
 
   _onRender(context, options) {
     super._onRender?.(context, options);
-    this._adjustForSidebar();
     if (this._showPanel === "locations") this._bindLocationPanel();
     else if (this._showPanel === "portraits") this._bindPortraitPanel();
     else if (this._showPanel === "scene") this._bindScenePanel();
     else if (this._showPanel === "presets") this._bindPresetsPanel();
     else this._bindMainUI();
-  }
-
-  _adjustForSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const w = sidebar && !sidebar.classList.contains("collapsed") ? "300px" : "0px";
-    this.element?.style.setProperty("--sidebar-w", w);
   }
 
   _el() {
@@ -903,6 +896,7 @@ Hooks.on("getSceneControlButtons", (t) => {
         visible: true
       }
     },
+    activeTool: "launch",
     onChange: (_event, active) => {
       if (active) _openVN();
     }
