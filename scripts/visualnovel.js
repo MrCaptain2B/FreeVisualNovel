@@ -374,7 +374,7 @@ class VisualNovelApp extends AppBase {
   }
 }
 
-Hooks.once("init", function() {
+Hooks.on("init", function() {
   game.freevisualnovel = {
     scenes: VisualNovelApp._createDefaultScenes()
   };
@@ -392,10 +392,16 @@ Hooks.on("getSceneControlButtons", (controls) => {
         title: "Open Visual Novel",
         icon: "fas fa-play",
         onClick: () => {
-          if (!ui.freevisualnovel) {
-            ui.freevisualnovel = new VisualNovelApp(game.freevisualnovel.scenes);
+          try {
+            if (!ui.freevisualnovel) {
+              const scenes = game.freevisualnovel?.scenes || VisualNovelApp._createDefaultScenes();
+              ui.freevisualnovel = new VisualNovelApp(scenes);
+            }
+            ui.freevisualnovel.render({ force: true });
+          } catch(e) {
+            console.error("FreeVisualNovel | Failed to open:", e);
+            ui.notifications?.error("Free Visual Novel: failed to open");
           }
-          ui.freevisualnovel.render(true);
         }
       }
     ]
