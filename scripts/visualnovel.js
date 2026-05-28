@@ -1190,6 +1190,7 @@ class VisualNovelApp extends AppBase {
   async close(options) {
     if (!this.element) return super.close(options);
     this.element.classList.add("vn-fading-out");
+    this._interactiveEl?.classList.add("vn-fading-out");
     await new Promise(r => setTimeout(r, 250));
     return super.close(options);
   }
