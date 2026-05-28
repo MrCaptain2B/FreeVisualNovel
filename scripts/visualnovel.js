@@ -239,7 +239,6 @@ class VisualNovelApp extends AppBase {
     content.innerHTML = result;
     this._contentEl = content;
     this._ensureInteractiveLayer();
-    this._onRender(this._context, options);
   }
 
   _onRender(context, options) {
