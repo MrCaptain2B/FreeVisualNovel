@@ -90,8 +90,7 @@ class VisualNovelApp extends AppBase {
       align: "left",
       text: "",
       showSpeaker: true,
-      fontSize: 16,
-      speakerFontSize: 14
+      fontSize: 16
     };
   }
 
@@ -107,8 +106,12 @@ class VisualNovelApp extends AppBase {
       align: game.settings?.get("free-visual-novel", "dialogAlign") || "left",
       text: "",
       showSpeaker: game.settings?.get("free-visual-novel", "dialogShowSpeaker") !== false,
-      fontSize: parseInt(game.settings?.get("free-visual-novel", "dialogFontSize")) || 16,
-      speakerFontSize: parseInt(game.settings?.get("free-visual-novel", "dialogSpeakerFontSize")) || 14
+      fontSize: parseInt(game.settings?.get("free-visual-novel", "dialogFontSize")) || 16
+    };
+    this._speakerBox = {
+      width: parseInt(game.settings?.get("free-visual-novel", "speakerWidth")) || 280,
+      height: parseInt(game.settings?.get("free-visual-novel", "speakerHeight")) || 44,
+      fontSize: parseInt(game.settings?.get("free-visual-novel", "speakerFontSize")) || 18
     };
     this._ready = true;
   }
@@ -200,6 +203,7 @@ class VisualNovelApp extends AppBase {
       selectedPortrait: selPort,
       bgBrightness: this._bgBrightness,
       dialog: this._dialog,
+      speakerBox: this._speakerBox,
       themeBg: this._themeBg,
       themeAccent: this._themeAccent
     };
@@ -889,9 +893,6 @@ class VisualNovelApp extends AppBase {
       this._dialog.showSpeaker = !this._dialog.showSpeaker;
       _saveDialogSetting("dialogShowSpeaker", this._dialog.showSpeaker);
       ev.currentTarget.textContent = this._dialog.showSpeaker ? "Show" : "Hide";
-      const box = document.querySelector(".vn-dialog-box");
-      const sp = box?.querySelector(".vn-dialog-speaker");
-      if (sp) sp.style.display = this._dialog.showSpeaker ? "" : "none";
     });
 
     // Font size
@@ -904,14 +905,38 @@ class VisualNovelApp extends AppBase {
       if (box) box.style.fontSize = this._dialog.fontSize + "px";
     });
 
-    // Speaker font size
-    html.querySelector(".vn-dialog-speaker-fontsize")?.addEventListener("input", (ev) => {
-      this._dialog.speakerFontSize = parseInt(ev.target.value) || 14;
-      _saveDialogSetting("dialogSpeakerFontSize", this._dialog.speakerFontSize);
+    const _saveSpeakerSetting = (key, value) => {
+      game.settings?.set("free-visual-novel", key, value);
+    };
+
+    // Speaker box width
+    html.querySelector(".vn-speaker-width")?.addEventListener("input", (ev) => {
+      this._speakerBox.width = parseInt(ev.target.value) || 280;
+      _saveSpeakerSetting("speakerWidth", this._speakerBox.width);
       const val = ev.target.parentElement?.querySelector(".vn-dialog-val");
-      if (val) val.textContent = this._dialog.speakerFontSize + "px";
-      const box = document.querySelector(".vn-dialog-speaker");
-      if (box) box.style.fontSize = this._dialog.speakerFontSize + "px";
+      if (val) val.textContent = this._speakerBox.width + "px";
+      const box = document.querySelector(".vn-speaker-indicator");
+      if (box) box.style.width = this._speakerBox.width + "px";
+    });
+
+    // Speaker box height
+    html.querySelector(".vn-speaker-height")?.addEventListener("input", (ev) => {
+      this._speakerBox.height = parseInt(ev.target.value) || 44;
+      _saveSpeakerSetting("speakerHeight", this._speakerBox.height);
+      const val = ev.target.parentElement?.querySelector(".vn-dialog-val");
+      if (val) val.textContent = this._speakerBox.height + "px";
+      const box = document.querySelector(".vn-speaker-indicator");
+      if (box) box.style.height = this._speakerBox.height + "px";
+    });
+
+    // Speaker box font size
+    html.querySelector(".vn-speaker-fontsize")?.addEventListener("input", (ev) => {
+      this._speakerBox.fontSize = parseInt(ev.target.value) || 18;
+      _saveSpeakerSetting("speakerFontSize", this._speakerBox.fontSize);
+      const val = ev.target.parentElement?.querySelector(".vn-dialog-val");
+      if (val) val.textContent = this._speakerBox.fontSize + "px";
+      const box = document.querySelector(".vn-speaker-name");
+      if (box) box.style.fontSize = this._speakerBox.fontSize + "px";
     });
   }
 
@@ -1161,9 +1186,20 @@ Hooks.once("init", async function() {
     { key: "dialogAlign", name: "Dialogue Text Align", hint: "left, center, or right", default: "left", type: String },
     { key: "dialogShowSpeaker", name: "Show Speaker Name", hint: "Whether to display the speaker name in the dialogue box", default: true, type: Boolean },
     { key: "dialogFontSize", name: "Dialogue Font Size", hint: "Font size in pixels (10-36)", default: 16, type: Number },
-    { key: "dialogSpeakerFontSize", name: "Speaker Name Font Size", hint: "Font size in pixels (10-36)", default: 14, type: Number }
   ];
   for (const s of dialogSettings) {
+    game.settings?.register("free-visual-novel", s.key, {
+      scope: "world", type: s.type, default: s.default, config: true,
+      name: s.name, hint: s.hint
+    });
+  }
+
+  const speakerSettings = [
+    { key: "speakerWidth", name: "Speaker Box Width", hint: "Width in pixels (140-500)", default: 280, type: Number },
+    { key: "speakerHeight", name: "Speaker Box Height", hint: "Height in pixels (28-100)", default: 44, type: Number },
+    { key: "speakerFontSize", name: "Speaker Name Font Size", hint: "Font size in pixels (12-40)", default: 18, type: Number }
+  ];
+  for (const s of speakerSettings) {
     game.settings?.register("free-visual-novel", s.key, {
       scope: "world", type: s.type, default: s.default, config: true,
       name: s.name, hint: s.hint

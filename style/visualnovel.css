@@ -217,16 +217,20 @@
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
-  padding: 6px 20px;
   pointer-events: none;
   text-align: center;
   z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 4px 12px;
 }
 .vn-speaker-name {
-  font-size: 1.15em;
   font-weight: 600;
   color: var(--vn-accent);
-  text-shadow: 0 0 10px rgba(var(--vn-accent-rgb),0.35);
+  text-shadow: 0 0 10px rgba(var(--vn-accent-rgb),0.55);
+  white-space: nowrap;
 }
 
 /* ── GM Speaker Bar ── */
@@ -438,9 +442,9 @@
   background: rgba(255,255,255,0.06);
 }
 .vn-loc-thumb {
-  width: 60px; height: 40px; flex-shrink: 0;
-  border-radius: 4px; background-size: cover; background-position: center;
-  margin-right: 10px; background-color: rgba(0,0,0,0.2);
+  width: 100px; height: 66px; flex-shrink: 0;
+  border-radius: 6px; background-size: cover; background-position: center;
+  margin-right: 12px; background-color: rgba(0,0,0,0.2);
 }
 .vn-loc-tags { color: rgba(255,255,255,0.35); font-size: 0.75em; margin-left: 6px; }
 .vn-port-tags { display: block; color: rgba(255,255,255,0.3); font-size: 0.7em; margin-top: 2px; }
@@ -483,8 +487,8 @@
 
 /* ── Portrait items ── */
 .vn-port-avatar {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   overflow: hidden;
   background: rgba(255,255,255,0.06);

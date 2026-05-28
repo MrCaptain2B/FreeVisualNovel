@@ -190,10 +190,23 @@
         <input class="vn-dialog-fontsize" type="range" min="10" max="36" step="1" value="{{dialog.fontSize}}">
         <span class="vn-dialog-val">{{dialog.fontSize}}px</span>
       </div>
+    </div>
+    <div class="vn-scene-section">
+      <label>Speaker Box</label>
       <div class="vn-dialog-setting">
-        <span>Speaker size</span>
-        <input class="vn-dialog-speaker-fontsize" type="range" min="10" max="36" step="1" value="{{dialog.speakerFontSize}}">
-        <span class="vn-dialog-val">{{dialog.speakerFontSize}}px</span>
+        <span>Width</span>
+        <input class="vn-speaker-width" type="range" min="140" max="500" step="5" value="{{speakerBox.width}}">
+        <span class="vn-dialog-val">{{speakerBox.width}}px</span>
+      </div>
+      <div class="vn-dialog-setting">
+        <span>Height</span>
+        <input class="vn-speaker-height" type="range" min="28" max="100" step="2" value="{{speakerBox.height}}">
+        <span class="vn-dialog-val">{{speakerBox.height}}px</span>
+      </div>
+      <div class="vn-dialog-setting">
+        <span>Font size</span>
+        <input class="vn-speaker-fontsize" type="range" min="12" max="40" step="1" value="{{speakerBox.fontSize}}">
+        <span class="vn-dialog-val">{{speakerBox.fontSize}}px</span>
       </div>
     </div>
   </div>
@@ -260,10 +273,12 @@
     {{/each}}
   </div>
 
+  {{#if dialog.showSpeaker}}
   {{#if speaker}}
-  <div class="vn-speaker-indicator">
-    <span class="vn-speaker-name">{{speaker}}</span>
+  <div class="vn-speaker-indicator" style="width: {{speakerBox.width}}px; height: {{speakerBox.height}}px;">
+    <span class="vn-speaker-name" style="font-size: {{speakerBox.fontSize}}px;">{{speaker}}</span>
   </div>
+  {{/if}}
   {{/if}}
 
   {{#if selectedPortrait}}
@@ -282,11 +297,6 @@
 
   {{#if dialog.text}}
   <div class="vn-dialog-box" style="width: {{dialog.width}}%; height: {{dialog.height}}px; opacity: {{dialog.opacity}}; text-align: {{dialog.align}}; font-size: {{dialog.fontSize}}px;">
-    {{#if dialog.showSpeaker}}
-    {{#if speaker}}
-    <div class="vn-dialog-speaker" style="font-size: {{dialog.speakerFontSize}}px;">{{speaker}}</div>
-    {{/if}}
-    {{/if}}
     <div class="vn-dialog-content">{{dialog.text}}</div>
   </div>
   {{/if}}
