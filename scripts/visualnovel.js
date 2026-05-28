@@ -72,6 +72,8 @@ class VisualNovelApp extends AppBase {
     this._locTagSearch = "";
     this._locGroupFilter = "";
     this._locListLimit = 30;
+    this._editingLocId = null;
+    this._editingPortId = null;
     this._portSearch = "";
     this._portTagSearch = "";
     this._portGroupFilter = "";
@@ -173,6 +175,8 @@ class VisualNovelApp extends AppBase {
       portRemaining,
       portSearchValue: this._portSearch,
       portTagSearchValue: this._portTagSearch,
+      editingLocId: this._editingLocId,
+      editingPortId: this._editingPortId,
       locGroups,
       portGroups,
       presets: this._data?.presets || [],
@@ -474,11 +478,37 @@ class VisualNovelApp extends AppBase {
       });
     });
 
+    html.querySelectorAll(".vn-loc-edit").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const loc = this._data?.locations.find(l => l.id === id);
+        if (!loc) return;
+        this._editingLocId = id;
+        this.render();
+      });
+    });
+
     html.querySelector(".vn-loc-back")?.addEventListener("click", () => {
+      this._editingLocId = null;
       this._showPanel = null;
       this.render();
     });
 
+    // Populate form when editing
+    if (this._editingLocId) {
+      const loc = this._data?.locations.find(l => l.id === this._editingLocId);
+      if (loc) {
+        const f = html.querySelector(".vn-loc-form");
+        if (f) {
+          f.querySelector(".vn-loc-f-name").value = loc.name || "";
+          f.querySelector(".vn-loc-f-group").value = loc.group || "";
+          f.querySelector(".vn-loc-f-bg").value = loc.background || "";
+          f.querySelector(".vn-loc-f-tags").value = (loc.tags || []).join(", ");
+          f.querySelector(".vn-loc-f-parent").value = loc.parent || "";
+          f.querySelector(".vn-loc-f-weather").value = loc.weather || "";
+        }
+      }
+    }
     this._bindAddLocation(html);
   }
 
@@ -490,8 +520,7 @@ class VisualNovelApp extends AppBase {
       this._saving = true;
       const name = form.querySelector(".vn-loc-f-name")?.value?.trim();
       if (!name) { this._saving = false; return ui.notifications?.warn("Enter location name"); }
-      const loc = {
-        id: String(this._data.nextLocId++),
+      const data = {
         name,
         background: form.querySelector(".vn-loc-f-bg")?.value?.trim() || "",
         group: form.querySelector(".vn-loc-f-group")?.value?.trim() || "",
@@ -499,7 +528,13 @@ class VisualNovelApp extends AppBase {
         parent: form.querySelector(".vn-loc-f-parent")?.value?.trim() || "",
         weather: form.querySelector(".vn-loc-f-weather")?.value?.trim() || ""
       };
-      this._data.locations.push(loc);
+      if (this._editingLocId) {
+        const idx = this._data.locations.findIndex(l => l.id === this._editingLocId);
+        if (idx !== -1) Object.assign(this._data.locations[idx], data);
+        this._editingLocId = null;
+      } else {
+        this._data.locations.push({ id: String(this._data.nextLocId++), ...data });
+      }
       await _saveData(this._data);
       form.querySelector(".vn-loc-f-name").value = "";
       form.querySelector(".vn-loc-f-bg").value = "";
@@ -587,14 +622,54 @@ class VisualNovelApp extends AppBase {
       });
     });
 
+    html.querySelectorAll(".vn-port-edit").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const port = this._data?.portraits.find(p => p.id === id);
+        if (!port) return;
+        this._editingPortId = id;
+        this.render();
+      });
+    });
+
     html.querySelector(".vn-port-import")?.addEventListener("click", () => {
       _importActorPortraits();
     });
 
     html.querySelector(".vn-port-back")?.addEventListener("click", () => {
+      this._editingPortId = null;
       this._showPanel = null;
       this.render();
     });
+
+    // Populate form when editing
+    if (this._editingPortId) {
+      const port = this._data?.portraits.find(p => p.id === this._editingPortId);
+      if (port) {
+        const f = html.querySelector(".vn-port-form");
+        if (f) {
+          f.querySelector(".vn-port-f-name").value = port.name || "";
+          f.querySelector(".vn-port-f-group").value = port.group || "";
+          f.querySelector(".vn-port-f-title").value = port.title || "";
+          f.querySelector(".vn-port-f-tags").value = (port.tags || []).join(", ");
+          f.querySelector(".vn-port-f-img").value = port.image || "";
+          f.querySelector(".vn-port-f-actor").value = port.actorId || "";
+          // Load emotion rows
+          const list = f.querySelector(".vn-emotion-list");
+          const tpl = f.querySelector(".vn-emotion-row-tpl");
+          if (list && tpl && port.images && port.images.length > 1) {
+            for (let i = 1; i < port.images.length; i++) {
+              const el = tpl.content.cloneNode(true);
+              el.querySelector(".vn-emotion-path").value = port.images[i] || "";
+              if (this._bindEmotionRow) this._bindEmotionRow(el);
+              list.appendChild(el);
+            }
+            list.querySelectorAll(".vn-emotion-idx").forEach((s, i) => s.textContent = (i + 1) + ".");
+            if (this._updateEmotionAddBtn) this._updateEmotionAddBtn();
+          }
+        }
+      }
+    }
 
     this._bindAddPortrait(html);
   }
@@ -604,37 +679,35 @@ class VisualNovelApp extends AppBase {
     if (!form) return;
 
     const MAX_EMOTIONS = 5;
-    function emotionCount() {
-      return form.querySelectorAll(".vn-emotion-row").length;
-    }
-    function updateEmotionAddBtn() {
+    const ec = () => form.querySelectorAll(".vn-emotion-row").length;
+    const ueb = () => {
       const btn = form.querySelector(".vn-emotion-add");
       if (!btn) return;
-      const count = emotionCount();
-      btn.disabled = count >= MAX_EMOTIONS;
-      btn.textContent = count >= MAX_EMOTIONS ? `Max ${MAX_EMOTIONS} emotions` : `Add emotion (${count}/${MAX_EMOTIONS})`;
-    }
-    function readEmotions() {
+      const c = ec();
+      btn.disabled = c >= MAX_EMOTIONS;
+      btn.textContent = c >= MAX_EMOTIONS ? `Max ${MAX_EMOTIONS} emotions` : `Add emotion (${c}/${MAX_EMOTIONS})`;
+    };
+    this._readEmotions = () => {
       const paths = [];
       form.querySelectorAll(".vn-emotion-path").forEach(inp => {
         const v = inp.value.trim();
         if (v) paths.push(v);
       });
       return paths.slice(0, MAX_EMOTIONS);
-    }
-    function resetEmotions() {
+    };
+    this._resetEmotions = () => {
       const list = form.querySelector(".vn-emotion-list");
       if (list) list.innerHTML = "";
-      updateEmotionAddBtn();
-    }
-    function bindEmotionRow(el) {
+      ueb();
+    };
+    this._bindEmotionRow = (el) => {
       const inp = el.querySelector(".vn-emotion-path");
       el.querySelector(".vn-emotion-remove")?.addEventListener("click", (ev) => {
         const row = ev.currentTarget.closest(".vn-emotion-row");
         row?.parentElement?.removeChild(row);
         const list = form.querySelector(".vn-emotion-list");
         list?.querySelectorAll(".vn-emotion-idx").forEach((s, i) => s.textContent = (i + 1) + ".");
-        updateEmotionAddBtn();
+        ueb();
       });
       el.querySelector(".vn-emotion-fp")?.addEventListener("click", () => {
         try {
@@ -644,22 +717,23 @@ class VisualNovelApp extends AppBase {
           fp.render(true);
         } catch(e) { console.error("FilePicker error:", e); }
       });
-    }
+    };
+    this._updateEmotionAddBtn = ueb;
     form.querySelector(".vn-emotion-add")?.addEventListener("click", () => {
       const list = form.querySelector(".vn-emotion-list");
       const tpl = form.querySelector(".vn-emotion-row-tpl");
       if (!list || !tpl) return;
-      if (emotionCount() >= MAX_EMOTIONS) {
+      if (ec() >= MAX_EMOTIONS) {
         ui.notifications?.warn(`Maximum ${MAX_EMOTIONS} emotions allowed`);
         return;
       }
       const el = tpl.content.cloneNode(true);
-      bindEmotionRow(el);
+      this._bindEmotionRow(el);
       list.appendChild(el);
       list.querySelectorAll(".vn-emotion-idx").forEach((s, i) => s.textContent = (i + 1) + ".");
-      updateEmotionAddBtn();
+      ueb();
     });
-    updateEmotionAddBtn();
+    ueb();
 
     form.querySelector(".vn-port-save")?.addEventListener("click", async () => {
       if (this._saving) return;
@@ -667,11 +741,10 @@ class VisualNovelApp extends AppBase {
       const name = form.querySelector(".vn-port-f-name")?.value?.trim();
       if (!name) { this._saving = false; return ui.notifications?.warn("Enter portrait name"); }
       const mainImg = form.querySelector(".vn-port-f-img")?.value?.trim() || "";
-      const extra = readEmotions();
+      const extra = this._readEmotions();
       const allImgs = extra.length ? [mainImg, ...extra.filter(p => p !== mainImg)] : (mainImg ? [mainImg] : []);
       const tagsRaw = form.querySelector(".vn-port-f-tags")?.value?.trim() || "";
-      const port = {
-        id: String(this._data.nextPortId++),
+      const data = {
         name,
         title: form.querySelector(".vn-port-f-title")?.value?.trim() || "",
         group: form.querySelector(".vn-port-f-group")?.value?.trim() || "",
@@ -680,7 +753,13 @@ class VisualNovelApp extends AppBase {
         images: allImgs,
         actorId: form.querySelector(".vn-port-f-actor")?.value?.trim() || ""
       };
-      this._data.portraits.push(port);
+      if (this._editingPortId) {
+        const idx = this._data.portraits.findIndex(p => p.id === this._editingPortId);
+        if (idx !== -1) Object.assign(this._data.portraits[idx], data);
+        this._editingPortId = null;
+      } else {
+        this._data.portraits.push({ id: String(this._data.nextPortId++), ...data });
+      }
       await _saveData(this._data);
       this._saving = false;
       form.querySelector(".vn-port-f-name").value = "";
@@ -688,7 +767,7 @@ class VisualNovelApp extends AppBase {
       form.querySelector(".vn-port-f-tags").value = "";
       form.querySelector(".vn-port-f-img").value = "";
       form.querySelector(".vn-port-f-actor").value = "";
-      resetEmotions();
+      this._resetEmotions();
       this.render();
     });
     form.querySelector(".vn-port-fp")?.addEventListener("click", () => {
