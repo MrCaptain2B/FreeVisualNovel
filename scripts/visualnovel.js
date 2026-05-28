@@ -1105,16 +1105,8 @@ Hooks.on("getSceneControlButtons", (t) => {
         icon: "fas fa-play",
         button: true,
         visible: true,
-        onClick: () => _openVN()
+        onChange: () => _openVN()
       },
-      // presets: {
-      //   name: "presets",
-      //   title: "Presets",
-      //   icon: "fas fa-bookmark",
-      //   button: true,
-      //   visible: true,
-      //   onClick: () => _showPresetPicker()
-      // }
     }
   };
   t.freevisualnovel = group;
