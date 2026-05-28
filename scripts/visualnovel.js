@@ -316,13 +316,16 @@ class VisualNovelApp extends AppBase {
           this.render();
         });
       });
-      // Close menu on click outside
-      document.addEventListener("click", () => {
-        if (this._showBroadcastMenu) {
+      // Close menu on outside click
+      const menuCloser = (ev) => {
+        if (this._showBroadcastMenu && !ev.target.closest(".vn-broadcast-wrapper")) {
           this._showBroadcastMenu = false;
           this.render();
         }
-      }, { once: true });
+      };
+      this._broadcastMenuCleanup?.();
+      setTimeout(() => document.addEventListener("click", menuCloser), 0);
+      this._broadcastMenuCleanup = () => document.removeEventListener("click", menuCloser);
     }
 
     html.querySelector(".vn-btn-close")?.addEventListener("click", () => this.close());
@@ -1152,6 +1155,7 @@ class VisualNovelApp extends AppBase {
 
   _onClose(options) {
     if (this._dragCleanup) this._dragCleanup();
+    this._broadcastMenuCleanup?.();
     this.element?.classList.remove("vn-fullscreen-active");
   }
 
