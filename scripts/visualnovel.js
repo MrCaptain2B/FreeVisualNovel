@@ -238,6 +238,7 @@ class VisualNovelApp extends AppBase {
   _replaceHTML(result, content, options) {
     content.innerHTML = result;
     this._contentEl = content;
+    this._ensureInteractiveLayer();
     this._onRender(this._context, options);
   }
 
@@ -250,7 +251,6 @@ class VisualNovelApp extends AppBase {
     else if (this._showPanel === "scene") this._bindScenePanel();
     else if (this._showPanel === "presets") this._bindPresetsPanel();
     else this._bindMainUI();
-    this._ensureInteractiveLayer();
   }
 
   _ensureInteractiveLayer() {
@@ -278,7 +278,17 @@ class VisualNovelApp extends AppBase {
   }
 
   _el() {
-    return this._contentEl || this.element;
+    if (!this._queryRoot) {
+      const self = this;
+      this._queryRoot = {
+        querySelector: (sel) => document.querySelector(sel),
+        querySelectorAll: (sel) => document.querySelectorAll(sel),
+        addEventListener: (...args) => document.addEventListener(...args),
+        removeEventListener: (...args) => document.removeEventListener(...args),
+        getBoundingClientRect: () => (self._contentEl || self.element)?.getBoundingClientRect() || { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+      };
+    }
+    return this._queryRoot;
   }
 
   /* ─────────────── MAIN UI ─────────────── */
