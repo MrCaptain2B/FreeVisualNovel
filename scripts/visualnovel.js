@@ -97,8 +97,8 @@ class VisualNovelApp extends AppBase {
   /* ── Init ── */
   async _initialize() {
     this._data = await _loadData();
-    this._themeBg = this._data.themeBg || "#0d0d1a";
-    this._themeAccent = this._data.themeAccent || "#f0c040";
+    this._themeBg = game.settings?.get("free-visual-novel", "themeBg") || this._data.themeBg || "#0d0d1a";
+    this._themeAccent = game.settings?.get("free-visual-novel", "themeAccent") || this._data.themeAccent || "#f0c040";
     this._ready = true;
   }
 
@@ -816,11 +816,13 @@ class VisualNovelApp extends AppBase {
     html.querySelector(".vn-theme-bg")?.addEventListener("input", (ev) => {
       this._themeBg = ev.target.value;
       if (this._data) { this._data.themeBg = this._themeBg; _saveData(this._data); }
+      game.settings?.set("free-visual-novel", "themeBg", this._themeBg);
       this._applyTheme();
     });
     html.querySelector(".vn-theme-accent")?.addEventListener("input", (ev) => {
       this._themeAccent = ev.target.value;
       if (this._data) { this._data.themeAccent = this._themeAccent; _saveData(this._data); }
+      game.settings?.set("free-visual-novel", "themeAccent", this._themeAccent);
       this._applyTheme();
     });
 
@@ -1102,6 +1104,24 @@ Hooks.once("init", async function() {
     config: true,
     name: "Default Portrait Folder",
     hint: "Path to folder containing actor portraits for auto-import (e.g. worlds/my-world/portraits)"
+  });
+
+  game.settings?.register("free-visual-novel", "themeBg", {
+    scope: "world",
+    type: String,
+    default: "#0d0d1a",
+    config: true,
+    name: "Theme Background Color",
+    hint: "Main background color for the VN overlay (e.g. #0d0d1a)"
+  });
+
+  game.settings?.register("free-visual-novel", "themeAccent", {
+    scope: "world",
+    type: String,
+    default: "#f0c040",
+    config: true,
+    name: "Theme Accent Color",
+    hint: "Accent/highlight color (e.g. #f0c040)"
   });
 
   const hasEpicRolls = game.modules?.get("epic-rolls")?.active ?? false;
