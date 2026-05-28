@@ -273,7 +273,7 @@ class VisualNovelApp extends AppBase {
   }
 
   _el() {
-    return this._interactiveEl || this._contentEl || this.element;
+    return this._contentEl || this.element;
   }
 
   /* ─────────────── MAIN UI ─────────────── */
@@ -1185,6 +1185,7 @@ class VisualNovelApp extends AppBase {
       document.body.appendChild(el);
       this._interactiveEl = el;
     }
+    this._onRender(context, options);
   }
 
   _onClose(options) {
