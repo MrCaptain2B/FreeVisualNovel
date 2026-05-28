@@ -386,6 +386,20 @@ class VisualNovelApp extends AppBase {
 
     locSearch?.addEventListener("input", (ev) => {
       this._locSearch = ev.target.value;
+      clearTimeout(this._locSearchTimer);
+      this._locSearchTimer = setTimeout(() => this.render(), 150);
+    });
+    locTag?.addEventListener("input", (ev) => {
+      this._locTagSearch = ev.target.value;
+      clearTimeout(this._locTagTimer);
+      this._locTagTimer = setTimeout(() => this.render(), 150);
+    });
+    locGroup?.addEventListener("change", (ev) => {
+      this._locGroupFilter = ev.target.value;
+      this.render();
+    });
+    html.querySelector(".vn-loc-show-more")?.addEventListener("click", () => {
+      this._locListLimit += 30;
       this.render();
     });
     html.querySelector(".vn-loc-tag-filter")?.addEventListener("input", (ev) => {
@@ -483,11 +497,13 @@ class VisualNovelApp extends AppBase {
 
     portSearch?.addEventListener("input", (ev) => {
       this._portSearch = ev.target.value;
-      this.render();
+      clearTimeout(this._portSearchTimer);
+      this._portSearchTimer = setTimeout(() => this.render(), 150);
     });
     portTag?.addEventListener("input", (ev) => {
       this._portTagSearch = ev.target.value;
-      this.render();
+      clearTimeout(this._portTagTimer);
+      this._portTagTimer = setTimeout(() => this.render(), 150);
     });
     portGroup?.addEventListener("change", (ev) => {
       this._portGroupFilter = ev.target.value;
@@ -727,6 +743,7 @@ class VisualNovelApp extends AppBase {
       if (ev.target.closest(".vn-dialog-box")) return;
       if (ev.target.closest(".vn-panel")) return;
       if (ev.target.closest("select")) return;
+      if (ev.target.closest(".vn-emotion-strip")) return;
       const el = ev.target.closest(".vn-portrait");
       if (!el) {
         this._selectedPortraitIdx = null;

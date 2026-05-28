@@ -208,13 +208,6 @@
          style="left: {{this.x}}px; top: {{this.y}}px;
                 transform: scale({{this.scale}}) {{#if this.flip}}scaleX(-1){{/if}};
                 z-index: {{@index}};">
-      <div class="vn-portrait-frame {{#unless this.speaking}}vn-dimmed{{/unless}}">
-        {{#if this.currentImg}}
-        <img class="vn-portrait-img" src="{{this.currentImg}}" alt="{{this.name}}">
-        {{else}}
-        <div class="vn-portrait-placeholder">{{this.name}}</div>
-        {{/if}}
-      </div>
       {{#if this.hasEmotions}}
       {{#if this.selected}}
       <div class="vn-emotion-strip">
@@ -226,6 +219,13 @@
       </div>
       {{/if}}
       {{/if}}
+      <div class="vn-portrait-frame {{#unless this.speaking}}vn-dimmed{{/unless}}">
+        {{#if this.currentImg}}
+        <img class="vn-portrait-img" src="{{this.currentImg}}" alt="{{this.name}}">
+        {{else}}
+        <div class="vn-portrait-placeholder">{{this.name}}</div>
+        {{/if}}
+      </div>
     </div>
     {{/each}}
   </div>
