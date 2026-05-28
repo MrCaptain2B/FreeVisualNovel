@@ -82,7 +82,9 @@ class VisualNovelApp extends AppBase {
       height: 160,
       opacity: 0.85,
       align: "left",
-      text: ""
+      text: "",
+      showSpeaker: true,
+      fontSize: 16
     };
   }
 
@@ -753,6 +755,24 @@ class VisualNovelApp extends AppBase {
         const txt = box.querySelector(".vn-dialog-content");
         if (txt) txt.textContent = this._dialog.text;
       }
+    });
+
+    // Speaker toggle
+    html.querySelector(".vn-dialog-speaker-toggle")?.addEventListener("click", (ev) => {
+      this._dialog.showSpeaker = !this._dialog.showSpeaker;
+      ev.currentTarget.textContent = this._dialog.showSpeaker ? "Show" : "Hide";
+      const box = document.querySelector(".vn-dialog-box");
+      const sp = box?.querySelector(".vn-dialog-speaker");
+      if (sp) sp.style.display = this._dialog.showSpeaker ? "" : "none";
+    });
+
+    // Font size
+    html.querySelector(".vn-dialog-fontsize")?.addEventListener("input", (ev) => {
+      this._dialog.fontSize = parseInt(ev.target.value) || 16;
+      const val = ev.target.parentElement?.querySelector(".vn-dialog-val");
+      if (val) val.textContent = this._dialog.fontSize + "px";
+      const box = document.querySelector(".vn-dialog-box");
+      if (box) box.style.fontSize = this._dialog.fontSize + "px";
     });
   }
 

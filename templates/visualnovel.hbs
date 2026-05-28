@@ -168,6 +168,15 @@
         <span>Text</span>
         <textarea class="vn-dialog-text" rows="3" placeholder="Type dialogue here...">{{dialog.text}}</textarea>
       </div>
+      <div class="vn-dialog-setting">
+        <span>Speaker</span>
+        <button class="vn-dialog-speaker-toggle">{{#if dialog.showSpeaker}}Show{{else}}Hide{{/if}}</button>
+      </div>
+      <div class="vn-dialog-setting">
+        <span>Font size</span>
+        <input class="vn-dialog-fontsize" type="range" min="10" max="36" step="1" value="{{dialog.fontSize}}">
+        <span class="vn-dialog-val">{{dialog.fontSize}}px</span>
+      </div>
     </div>
   </div>
   {{/if}}
@@ -254,9 +263,11 @@
   {{/if}}
 
   {{#if dialog.text}}
-  <div class="vn-dialog-box" style="width: {{dialog.width}}%; height: {{dialog.height}}px; opacity: {{dialog.opacity}}; text-align: {{dialog.align}};">
+  <div class="vn-dialog-box" style="width: {{dialog.width}}%; height: {{dialog.height}}px; opacity: {{dialog.opacity}}; text-align: {{dialog.align}}; font-size: {{dialog.fontSize}}px;">
+    {{#if dialog.showSpeaker}}
     {{#if speaker}}
     <div class="vn-dialog-speaker">{{speaker}}</div>
+    {{/if}}
     {{/if}}
     <div class="vn-dialog-content">{{dialog.text}}</div>
   </div>
