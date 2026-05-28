@@ -432,6 +432,11 @@
 .vn-loc-item:hover, .vn-port-item:hover {
   background: rgba(255,255,255,0.06);
 }
+.vn-loc-thumb {
+  width: 60px; height: 40px; flex-shrink: 0;
+  border-radius: 4px; background-size: cover; background-position: center;
+  margin-right: 10px; background-color: rgba(0,0,0,0.2);
+}
 .vn-loc-tags { color: rgba(255,255,255,0.35); font-size: 0.75em; margin-left: 6px; }
 .vn-port-tags { display: block; color: rgba(255,255,255,0.3); font-size: 0.7em; margin-top: 2px; }
 .vn-list-count { color: rgba(255,255,255,0.35); font-size: 0.7em; padding: 2px 0 6px; }
