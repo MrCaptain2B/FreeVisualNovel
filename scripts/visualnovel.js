@@ -267,6 +267,7 @@ class VisualNovelApp extends AppBase {
       showBroadcastMenu: this._showBroadcastMenu,
       showInviteMenu: this._showInviteMenu,
       dialog: this._dialog,
+      dialogEnabled: game.settings?.get("free-visual-novel", "dialogEnabled") !== false,
       speakerFontSize: this._speakerFontSize,
       themeBg: this._themeBg,
       themeAccent: this._themeAccent
@@ -1113,6 +1114,13 @@ class VisualNovelApp extends AppBase {
       ev.currentTarget.textContent = this._dialog.showSpeaker ? "Show" : "Hide";
     });
 
+    // Dialog enable toggle
+    html.querySelector(".vn-dialog-enable-toggle")?.addEventListener("click", (ev) => {
+      game.settings?.set("free-visual-novel", "dialogEnabled", !game.settings?.get("free-visual-novel", "dialogEnabled"));
+      ev.currentTarget.textContent = game.settings?.get("free-visual-novel", "dialogEnabled") ? "On" : "Off";
+      this.render();
+    });
+
     // Font size
     html.querySelector(".vn-dialog-fontsize")?.addEventListener("input", (ev) => {
       this._dialog.fontSize = parseInt(ev.target.value) || 16;
@@ -1457,7 +1465,8 @@ function _broadcastVNState(app, force) {
     bg: app._bg,
     portraits: app._portraits,
     speaker: app._speaker,
-    claimed: app._claimed || {}
+    claimed: app._claimed || {},
+    dialog: app._dialog
   };
   game.socket?.emit(SOCKET, payload);
   if (app._broadcasting) {
@@ -1494,6 +1503,7 @@ function _applyVNState(data) {
     app._portraits = data.portraits || [];
     app._speaker = data.speaker || "";
     app._claimed = data.claimed || {};
+    if (data.dialog) app._dialog = Object.assign({}, app._dialog, data.dialog);
     app.render(true);
   } catch(e) {
     console.error("FreeVisualNovel | Failed to apply state:", e);
@@ -1557,6 +1567,7 @@ Hooks.once("init", async function() {
   });
 
   const dialogSettings = [
+    { key: "dialogEnabled", name: "Enable Dialogue Boxes", hint: "Master toggle — show/hide dialogue boxes entirely", default: true, type: Boolean },
     { key: "dialogWidth", name: "Dialogue Box Width", hint: "Width in percent (30-100)", default: 65, type: Number },
     { key: "dialogHeight", name: "Dialogue Box Height", hint: "Height in pixels (80-350)", default: 160, type: Number },
     { key: "dialogOpacity", name: "Dialogue Box Opacity", hint: "Opacity from 0.2 to 1.0", default: 0.85, type: Number },
@@ -1799,6 +1810,7 @@ function _rejoinVN() {
     app._portraits = _lastBroadcastState.portraits || [];
     app._speaker = _lastBroadcastState.speaker || "";
     app._claimed = _lastBroadcastState.claimed || {};
+    if (_lastBroadcastState.dialog) app._dialog = Object.assign({}, app._dialog, _lastBroadcastState.dialog);
     app.render(true);
     _vnOpening = false;
     return;
@@ -1810,6 +1822,7 @@ function _rejoinVN() {
     app._portraits = _lastBroadcastState.portraits || [];
     app._speaker = _lastBroadcastState.speaker || "";
     app._claimed = _lastBroadcastState.claimed || {};
+    if (_lastBroadcastState.dialog) app._dialog = Object.assign({}, app._dialog, _lastBroadcastState.dialog);
     app.render(true);
   } catch(e) {
     console.error("FreeVisualNovel | Failed to rejoin:", e);
