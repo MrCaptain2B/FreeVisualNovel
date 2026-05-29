@@ -1232,7 +1232,9 @@ class VisualNovelApp extends AppBase {
     });
 
     html.querySelector(".vn-presets-save-btn")?.addEventListener("click", async () => {
-      const name = html.querySelector(".vn-presets-name-input")?.value?.trim();
+      const input = html.querySelector(".vn-presets-name-input");
+      console.log("FreeVN | save btn, input:", { found: !!input, value: input?.value });
+      const name = input?.value?.trim();
       if (!name) return ui.notifications?.warn("Enter a preset name");
       const result = await this._savePreset(name);
       ui.notifications?.info(result === "updated" ? `Preset "${name}" updated` : `Preset "${name}" saved`);
