@@ -630,27 +630,37 @@ class VisualNovelApp extends AppBase {
 
   async _savePreset(name) {
     const existing = this._data.presets.find(p => p.name === name);
-    const preset = {
-      id: existing ? existing.id : String(this._data.nextPresetId++),
-      name,
-      bg: this._bg,
-      bgBrightness: this._bgBrightness,
-      hideBg: this._hideBg,
-      hideUI: this._hideUI,
-      portraits: JSON.parse(JSON.stringify(this._portraits)),
-      speaker: this._speaker,
-      dialog: JSON.parse(JSON.stringify(this._dialog)),
-      speakerFontSize: this._speakerFontSize,
-      themeBg: this._themeBg,
-      themeAccent: this._themeAccent,
-      currentLocationId: this._currentLocationId
-    };
     if (existing) {
-      Object.assign(existing, preset);
+      existing.bg = this._bg;
+      existing.bgBrightness = this._bgBrightness;
+      existing.hideBg = this._hideBg;
+      existing.hideUI = this._hideUI;
+      existing.portraits = JSON.parse(JSON.stringify(this._portraits));
+      existing.speaker = this._speaker;
+      existing.dialog = JSON.parse(JSON.stringify(this._dialog));
+      existing.speakerFontSize = this._speakerFontSize;
+      existing.themeBg = this._themeBg;
+      existing.themeAccent = this._themeAccent;
+      existing.currentLocationId = this._currentLocationId;
     } else {
-      this._data.presets.push(preset);
+      this._data.presets.push({
+        id: String(this._data.nextPresetId++),
+        name,
+        bg: this._bg,
+        bgBrightness: this._bgBrightness,
+        hideBg: this._hideBg,
+        hideUI: this._hideUI,
+        portraits: JSON.parse(JSON.stringify(this._portraits)),
+        speaker: this._speaker,
+        dialog: JSON.parse(JSON.stringify(this._dialog)),
+        speakerFontSize: this._speakerFontSize,
+        themeBg: this._themeBg,
+        themeAccent: this._themeAccent,
+        currentLocationId: this._currentLocationId
+      });
     }
     await _saveData(this._data);
+    return existing ? "updated" : "created";
   }
 
   _loadPreset(id) {
@@ -1224,8 +1234,8 @@ class VisualNovelApp extends AppBase {
     html.querySelector(".vn-presets-save-btn")?.addEventListener("click", async () => {
       const name = html.querySelector(".vn-presets-name-input")?.value?.trim();
       if (!name) return ui.notifications?.warn("Enter a preset name");
-      await this._savePreset(name);
-      ui.notifications?.info(`Preset "${name}" saved`);
+      const result = await this._savePreset(name);
+      ui.notifications?.info(result === "updated" ? `Preset "${name}" updated` : `Preset "${name}" saved`);
       this.render();
     });
 
