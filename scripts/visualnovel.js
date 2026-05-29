@@ -629,40 +629,49 @@ class VisualNovelApp extends AppBase {
   }
 
   async _savePreset(name) {
+    console.log("FreeVN | _savePreset start, _data:", this._data ? "loaded" : "null");
     if (!this._data) this._data = await _loadData();
     if (!this._data.presets) this._data.presets = [];
     if (!this._data.nextPresetId) this._data.nextPresetId = 1;
+    console.log("FreeVN | _savePreset existing check, presets count:", this._data.presets.length);
     const existing = this._data.presets.find(p => p.name === name);
-    if (existing) {
-      existing.bg = this._bg;
-      existing.bgBrightness = this._bgBrightness;
-      existing.hideBg = this._hideBg;
-      existing.hideUI = this._hideUI;
-      existing.portraits = JSON.parse(JSON.stringify(this._portraits));
-      existing.speaker = this._speaker;
-      existing.dialog = JSON.parse(JSON.stringify(this._dialog));
-      existing.speakerFontSize = this._speakerFontSize;
-      existing.themeBg = this._themeBg;
-      existing.themeAccent = this._themeAccent;
-      existing.currentLocationId = this._currentLocationId;
-    } else {
-      this._data.presets.push({
-        id: String(this._data.nextPresetId++),
-        name,
-        bg: this._bg,
-        bgBrightness: this._bgBrightness,
-        hideBg: this._hideBg,
-        hideUI: this._hideUI,
-        portraits: JSON.parse(JSON.stringify(this._portraits)),
-        speaker: this._speaker,
-        dialog: JSON.parse(JSON.stringify(this._dialog)),
-        speakerFontSize: this._speakerFontSize,
-        themeBg: this._themeBg,
-        themeAccent: this._themeAccent,
-        currentLocationId: this._currentLocationId
-      });
+    try {
+      if (existing) {
+        existing.bg = this._bg;
+        existing.bgBrightness = this._bgBrightness;
+        existing.hideBg = this._hideBg;
+        existing.hideUI = this._hideUI;
+        existing.portraits = JSON.parse(JSON.stringify(this._portraits));
+        existing.speaker = this._speaker;
+        existing.dialog = JSON.parse(JSON.stringify(this._dialog));
+        existing.speakerFontSize = this._speakerFontSize;
+        existing.themeBg = this._themeBg;
+        existing.themeAccent = this._themeAccent;
+        existing.currentLocationId = this._currentLocationId;
+      } else {
+        this._data.presets.push({
+          id: String(this._data.nextPresetId++),
+          name,
+          bg: this._bg,
+          bgBrightness: this._bgBrightness,
+          hideBg: this._hideBg,
+          hideUI: this._hideUI,
+          portraits: JSON.parse(JSON.stringify(this._portraits)),
+          speaker: this._speaker,
+          dialog: JSON.parse(JSON.stringify(this._dialog)),
+          speakerFontSize: this._speakerFontSize,
+          themeBg: this._themeBg,
+          themeAccent: this._themeAccent,
+          currentLocationId: this._currentLocationId
+        });
+      }
+    } catch (err) {
+      console.error("FreeVN | _savePreset serialize error:", err);
+      return "error";
     }
+    console.log("FreeVN | _savePreset calling _saveData");
     await _saveData(this._data);
+    console.log("FreeVN | _savePreset _saveData done");
     return existing ? "updated" : "created";
   }
 
@@ -1239,9 +1248,16 @@ class VisualNovelApp extends AppBase {
       const name = input?.value?.trim();
       if (!name) return ui.notifications?.warn("Enter a preset name");
       try {
+        console.log("FreeVN | calling _savePreset for:", name);
         const result = await this._savePreset(name);
+        console.log("FreeVN | _savePreset done, result:", result);
+        if (result === "error") {
+          return ui.notifications?.error("Failed to save preset");
+        }
         ui.notifications?.info(result === "updated" ? `Preset "${name}" updated` : `Preset "${name}" saved`);
+        console.log("FreeVN | calling render after save");
         this.render();
+        console.log("FreeVN | render returned after save");
       } catch (err) {
         console.error("FreeVN | savePreset error:", err);
         ui.notifications?.error("Failed to save preset: " + err.message);
