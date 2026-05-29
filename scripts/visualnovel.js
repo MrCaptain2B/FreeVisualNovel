@@ -629,6 +629,9 @@ class VisualNovelApp extends AppBase {
   }
 
   async _savePreset(name) {
+    if (!this._data) this._data = await _loadData();
+    if (!this._data.presets) this._data.presets = [];
+    if (!this._data.nextPresetId) this._data.nextPresetId = 1;
     const existing = this._data.presets.find(p => p.name === name);
     if (existing) {
       existing.bg = this._bg;
@@ -1233,12 +1236,16 @@ class VisualNovelApp extends AppBase {
 
     html.querySelector(".vn-presets-save-btn")?.addEventListener("click", async () => {
       const input = html.querySelector(".vn-presets-name-input");
-      console.log("FreeVN | save btn, input:", { found: !!input, value: input?.value });
       const name = input?.value?.trim();
       if (!name) return ui.notifications?.warn("Enter a preset name");
-      const result = await this._savePreset(name);
-      ui.notifications?.info(result === "updated" ? `Preset "${name}" updated` : `Preset "${name}" saved`);
-      this.render();
+      try {
+        const result = await this._savePreset(name);
+        ui.notifications?.info(result === "updated" ? `Preset "${name}" updated` : `Preset "${name}" saved`);
+        this.render();
+      } catch (err) {
+        console.error("FreeVN | savePreset error:", err);
+        ui.notifications?.error("Failed to save preset: " + err.message);
+      }
     });
 
     html.querySelectorAll(".vn-presets-load").forEach(btn => {
