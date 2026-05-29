@@ -27,6 +27,12 @@ function _defaultData() {
 async function _loadData() {
   let data = game.settings?.get("free-visual-novel", DATA_KEY);
   if (!data) data = _defaultData();
+  else {
+    const def = _defaultData();
+    for (const k of Object.keys(def)) {
+      if (data[k] === undefined) data[k] = def[k];
+    }
+  }
   return data;
 }
 
