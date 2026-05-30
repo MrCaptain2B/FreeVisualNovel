@@ -467,6 +467,7 @@ class VisualNovelApp extends _AppBase {
   _onClose(options) {
     this.element?.classList.remove("vn-fullscreen-active");
     if (this._playback?.timer) clearTimeout(this._playback.timer);
+    if (this._typewriterTimer) { clearInterval(this._typewriterTimer); this._typewriterTimer = null; }
     this._playback = null;
   }
 

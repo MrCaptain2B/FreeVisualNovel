@@ -8,13 +8,13 @@ let _vnOpening = false;
 function _openVN(openPanel) {
   if (_vnOpening) return;
   _vnOpening = true;
-  if (ui.freevisualnovel?.rendered) {
-    if (openPanel) ui.freevisualnovel._showPanel = openPanel;
-    ui.freevisualnovel.render(true);
-    _vnOpening = false;
-    return;
-  }
   try {
+    if (ui.freevisualnovel?.rendered) {
+      if (openPanel) ui.freevisualnovel._showPanel = openPanel;
+      ui.freevisualnovel.render(true);
+      _vnOpening = false;
+      return;
+    }
     const app = new VisualNovelApp();
     ui.freevisualnovel = app;
     if (openPanel) app._showPanel = openPanel;
