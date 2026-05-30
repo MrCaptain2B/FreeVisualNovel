@@ -226,6 +226,7 @@ proto._bindScriptEditor = function(html) {
     this._editScriptId = null;
     this._tempSteps = [];
     this._activeEditIdx = null;
+    this._showPanel = null;
     this.render();
   });
 
