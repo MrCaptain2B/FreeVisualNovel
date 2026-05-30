@@ -59,6 +59,7 @@ export function _broadcastVNState(app, force) {
     claimed: app._claimed || {},
     dialog: app._dialog
   };
+  console.log("FreeVN | Broadcasting state:", payload);
   game.socket?.emit(SOCKET, payload);
   if (app._broadcasting) {
     game.settings?.set("free-visual-novel", "broadcastStore", payload);

@@ -58,16 +58,19 @@ function _rejoinVN() {
 }
 
 function _applyVNState(data) {
-  if (!game.user || _userCan("permManage")) return;
+  console.log("FreeVN | _applyVNState entered", data?.targetUser, game.user?.id);
+  if (!game.user || _userCan("permManage")) { console.log("FreeVN | _applyVNState: user check failed"); return; }
   if (!data.broadcasting) {
+    console.log("FreeVN | _applyVNState: not broadcasting");
     _lastBroadcastState = null;
     ui.freevisualnovel?.close();
     return;
   }
-  if (data.targetUser && data.targetUser !== game.user?.id) return;
+  if (data.targetUser && data.targetUser !== game.user?.id) { console.log("FreeVN | _applyVNState: wrong target"); return; }
   if (data.inviteMode === "stage") {
     const hasPortraitOnStage = (data.portraits || []).some(p => p.userId === game.user?.id);
     if (!hasPortraitOnStage) {
+      console.log("FreeVN | _applyVNState: no portrait on stage");
       _lastBroadcastState = null;
       ui.freevisualnovel?.close();
       return;
@@ -157,8 +160,10 @@ Hooks.once("init", async function() {
   const hasSequencer = game.modules?.get("sequencer")?.active ?? false;
 
   game.socket?.on(SOCKET, (data) => {
+    console.log("FreeVN | Socket received:", data?.type, data?.targetUser);
     if (data?.type === "state") _applyVNState(data);
     else if (data?.type === "invite") {
+      console.log("FreeVN | Invite for:", data.userId, "my id:", game.user?.id);
       if (_userCan("permManage")) return;
       if (data.userId && data.userId !== game.user?.id) return;
       ui.notifications?.info("🎭 You've been invited to the VN scene!");
