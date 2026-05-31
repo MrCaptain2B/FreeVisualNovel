@@ -291,6 +291,7 @@ class VisualNovelApp extends _AppBase {
     this._applyTheme();
     this._applyDialogStyles();
     if (this._dragCleanup) this._dragCleanup();
+    if (this._dragCleanupPanel) this._dragCleanupPanel();
     this._bindMainUI();
     this._bindInlineEdit();
     if (this._showPanel === "locations") this._bindLocationPanel();

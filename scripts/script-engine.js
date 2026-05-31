@@ -176,6 +176,7 @@ proto._startPlayback = async function(script) {
     overlay.style.transition = `opacity ${(firstStep.transitionDuration || 0.5)}s ease`;
     overlay.style.opacity = "0";
     await new Promise(r => setTimeout(r, ((firstStep.transitionDuration || 0.5) * 1000 + 100)));
+    if (!this._playback) return;
     this._playback.currentStep = firstSceneIdx < steps.length ? firstSceneIdx : 0;
     this._playback.transitioning = false;
     this._typewriterDirty = true;
@@ -251,6 +252,7 @@ proto._playStep = async function(idx) {
     } else {
       await this._performTransition(step.transition, step.transitionDuration, null);
     }
+    if (!this._playback) return;
     this._playback.transitioning = false;
     this._typewriterDirty = false;
     this.render();
@@ -304,7 +306,7 @@ proto._startTypewriter = function() {
 proto._exportPreset = async function(presetId) {
   const preset = this._data?.presets?.find(p => p.id === presetId);
   if (!preset) return ui.notifications?.error("Preset not found");
-  const out = { name: preset.name, version: 1, bg: preset.bg || null, bgBrightness: preset.bgBrightness, hideBg: !!preset.hideBg, hideUI: !!preset.hideUI, speaker: preset.speaker, dialog: preset.dialog, speakerFontSize: preset.speakerFontSize, themeBg: preset.themeBg, themeAccent: preset.themeAccent, portraits: [] };
+  const out = { name: preset.name, version: 1, bg: preset.bg || null, bgBrightness: preset.bgBrightness, hideBg: !!preset.hideBg, hideUI: !!preset.hideUI, speaker: preset.speaker, dialog: preset.dialog, speakerFontSize: preset.speakerFontSize, themeBg: preset.themeBg, themeAccent: preset.themeAccent, currentLocationId: preset.currentLocationId || null, portraits: [] };
   for (const sp of (preset.portraits || [])) {
     const orig = this._data?.portraits?.find(op => op.id === sp.portraitId);
     if (!orig) continue;
@@ -331,7 +333,7 @@ proto._importPreset = function() {
       if (!this._data) this._data = await _loadData();
       if (!this._data.presets) this._data.presets = [];
       this._data.nextPresetId ||= 1;
-      const newPreset = { id: String(this._data.nextPresetId++), name: preset.name, bg: preset.bg || "", bgBrightness: preset.bgBrightness??1, hideBg: !!preset.hideBg, hideUI: !!preset.hideUI, speaker: preset.speaker||"", dialog: preset.dialog||{}, speakerFontSize: preset.speakerFontSize||20, themeBg: preset.themeBg||"#0d0d1a", themeAccent: preset.themeAccent||"#f0c040", currentLocationId: null, portraits: [] };
+      const newPreset = { id: String(this._data.nextPresetId++), name: preset.name, bg: preset.bg || "", bgBrightness: preset.bgBrightness??1, hideBg: !!preset.hideBg, hideUI: !!preset.hideUI, speaker: preset.speaker||"", dialog: preset.dialog||{}, speakerFontSize: preset.speakerFontSize||20, themeBg: preset.themeBg||"#0d0d1a", themeAccent: preset.themeAccent||"#f0c040", currentLocationId: preset.currentLocationId || null, portraits: [] };
       for (const sp of (preset.portraits || [])) {
         const match = this._data.portraits.find(p => p.id === sp.portraitId || p.name === sp.name);
         const pid = match ? match.id : null;
@@ -373,6 +375,7 @@ proto._bindScriptList = function(html) {
       this._editScriptId = btn.dataset.id;
       const script = this._data?.scripts?.find(s => s.id === this._editScriptId);
       this._tempSteps = script ? JSON.parse(JSON.stringify(script.steps)) : [];
+      this._tempStepsDirty = false;
       this._activeEditIdx = null;
       this._showPanel = "scriptEdit";
       this.render();
@@ -402,9 +405,10 @@ proto._bindScriptEditor = function(html) {
   }
 
   html.querySelector(".vn-sceditor-back")?.addEventListener("click", () => {
-    if (this._tempSteps?.length && !confirm("Discard unsaved changes?")) return;
+    if (this._tempStepsDirty && !confirm("Discard unsaved changes?")) return;
     this._editScriptId = null;
     this._tempSteps = [];
+    this._tempStepsDirty = false;
     this._activeEditIdx = null;
     this._showPanel = null;
     this.render();
@@ -418,6 +422,7 @@ proto._bindScriptEditor = function(html) {
       this._showPanel = "scripts";
       this._editScriptId = null;
       this._tempSteps = [];
+      this._tempStepsDirty = false;
       this._activeEditIdx = null;
       this.render();
     } else {
@@ -447,6 +452,7 @@ proto._bindScriptEditor = function(html) {
           step.transition = step.transition || "fadeToBlack";
           step.transitionDuration = step.transitionDuration || 0.5;
         }
+        this._tempStepsDirty = true;
       }
       this.render();
     });
@@ -457,6 +463,7 @@ proto._bindScriptEditor = function(html) {
       const idx = parseInt(inp.dataset.idx);
       if (this._tempSteps[idx]) {
         this._tempSteps[idx].duration = parseFloat(inp.value) || 0;
+        this._tempStepsDirty = true;
       }
     });
   });
@@ -466,6 +473,7 @@ proto._bindScriptEditor = function(html) {
       const idx = parseInt(inp.dataset.idx);
       if (this._tempSteps[idx]) {
         this._tempSteps[idx].label = inp.value;
+        this._tempStepsDirty = true;
       }
     });
   });
@@ -475,6 +483,7 @@ proto._bindScriptEditor = function(html) {
       const idx = parseInt(sel.dataset.idx);
       if (this._tempSteps[idx]) {
         this._tempSteps[idx].transition = sel.value;
+        this._tempStepsDirty = true;
       }
     });
   });
@@ -484,6 +493,7 @@ proto._bindScriptEditor = function(html) {
       const idx = parseInt(inp.dataset.idx);
       if (this._tempSteps[idx]) {
         this._tempSteps[idx].transitionDuration = parseFloat(inp.value) || 0.5;
+        this._tempStepsDirty = true;
       }
     });
   });
@@ -519,6 +529,7 @@ proto._bindScriptEditor = function(html) {
         };
       }
       this._tempSteps.push(newStep);
+      this._tempStepsDirty = true;
       this._activeEditIdx = this._tempSteps.length - 1;
       this.render();
     });
@@ -529,6 +540,7 @@ proto._bindScriptEditor = function(html) {
       const idx = parseInt(btn.dataset.idx);
       this._saveActiveStep();
       this._tempSteps.splice(idx, 1);
+      this._tempStepsDirty = true;
       if (this._activeEditIdx === idx) {
         this._activeEditIdx = null;
       } else if (this._activeEditIdx > idx) {
@@ -544,6 +556,7 @@ proto._bindScriptEditor = function(html) {
       if (idx <= 0) return;
       this._saveActiveStep();
       [this._tempSteps[idx - 1], this._tempSteps[idx]] = [this._tempSteps[idx], this._tempSteps[idx - 1]];
+      this._tempStepsDirty = true;
       if (this._activeEditIdx === idx) {
         this._activeEditIdx = idx - 1;
       } else if (this._activeEditIdx === idx - 1) {
@@ -559,6 +572,7 @@ proto._bindScriptEditor = function(html) {
       if (idx >= this._tempSteps.length - 1) return;
       this._saveActiveStep();
       [this._tempSteps[idx], this._tempSteps[idx + 1]] = [this._tempSteps[idx + 1], this._tempSteps[idx]];
+      this._tempStepsDirty = true;
       if (this._activeEditIdx === idx) {
         this._activeEditIdx = idx + 1;
       } else if (this._activeEditIdx === idx + 1) {
@@ -587,7 +601,7 @@ proto._bindPlayback = function() {
   html.querySelector(".vn-root")?.addEventListener("click", (ev) => {
     if (!this._playback) { ev.stopImmediatePropagation(); return; }
     if (this._playback.transitioning) { ev.stopImmediatePropagation(); return; }
-    if (ev.target.closest(".vn-gm-toolbar") || ev.target.closest(".vn-playback-bar") || ev.target.closest(".vn-panel")) { ev.stopImmediatePropagation(); return; }
+    if (ev.target.closest(".vn-gm-toolbar") || ev.target.closest(".vn-playback-bar") || ev.target.closest(".vn-panel") || ev.target.closest(".vn-emotion-strip")) { ev.stopImmediatePropagation(); return; }
     if (this._typewriterTimer) {
       this._clearTypewriter();
       const contentEls = document.querySelectorAll(".vn-dialog-content");
