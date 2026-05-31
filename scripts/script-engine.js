@@ -342,11 +342,7 @@ proto._exportPreset = async function(presetId) {
   } catch(e) { console.warn("FVN | export missing bg", preset.bg); }
   zip.file("preset.json", JSON.stringify(exportData, null, 2));
   const blob = await zip.generateAsync({ type: "blob" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${preset.name.replace(/[^a-z0-9_-]/gi, "_")}.zip`;
-  document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
+  foundry.utils.saveDataToFile(blob, `${preset.name.replace(/[^a-z0-9_-]/gi, "_")}.zip`, "application/zip");
   ui.notifications?.info(`Preset "${preset.name}" exported`);
 };
 
