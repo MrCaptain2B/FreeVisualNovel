@@ -145,6 +145,9 @@ Hooks.once("init", async function() {
   game.settings?.register("free-visual-novel", "broadcastStore", {
     scope: "world", type: Object, default: null, config: false
   });
+  try { (await import('./region-behavior.js')).registerRegionBehavior(); }
+  catch(e) { console.error("FreeVN | Failed to register region behavior:", e); }
+
   const roleChoices = { 1: "Player", 2: "Trusted", 3: "Assistant", 4: "GM" };
   const permSettings = [
     { key: "permManage", name: "Manage VN", hint: "Minimum role to manage scenes, portraits, and background", min: 3 },
