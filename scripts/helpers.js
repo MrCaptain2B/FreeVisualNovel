@@ -70,6 +70,7 @@ export function _broadcastVNState(app, force) {
   };
   console.log("FreeVN | Broadcasting to players");
   game.socket?.emit(SOCKET, payload);
+  _setLastBroadcastState(payload);
   if (app._broadcasting) {
     game.settings?.set("free-visual-novel", "broadcastStore", payload);
   }
