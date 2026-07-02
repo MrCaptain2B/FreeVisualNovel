@@ -584,7 +584,8 @@ class VisualNovelApp extends _AppBase {
       this._inviteBtn = null;
       this._inviteMenu?.remove();
       this._inviteMenu = null;
-      return super.close(options);
+      this._onClose();
+      return;
     }
     el.classList.add("vn-fading-out");
     await new Promise(r => setTimeout(r, 250));
@@ -600,8 +601,8 @@ class VisualNovelApp extends _AppBase {
     if (!_userCan("permManage") && _getLastBroadcastState()) {
       _whisperInvite();
     }
+    this._onClose();
     if (this._element) { this._element.remove(); this._element = null; }
-    return super.close(options);
   }
 }
 
