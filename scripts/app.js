@@ -6,7 +6,7 @@ import { bindInlineEdit } from './inline-edit.js';
 import { bindInvite } from './invite.js';
 import { bindScriptEngine } from './script-engine.js';
 
-const _AppBase = foundry.applications?.api?.Application || foundry.applications?.api?.ApplicationV2;
+const _AppBase = foundry.applications?.api?.ApplicationV2 || foundry.applications?.api?.Application;
 if (!_AppBase) {
   console.error("ViNarrat | Application class not found.");
 }
@@ -31,7 +31,7 @@ class VisualNovelApp extends _AppBase {
 
   constructor(options = {}) {
     super(options);
-    console.log("FreeVN | constructor");
+    console.log("FreeVN | constructor, AppBase:", _AppBase?.name, "proto has _renderHTML:", typeof VisualNovelApp.prototype._renderHTML, "own has _renderHTML:", typeof this._renderHTML);
     this._ready = false;
     this._data = null;
     this._bg = "";
