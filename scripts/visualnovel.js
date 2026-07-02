@@ -223,6 +223,23 @@ Hooks.once("ready", async function() {
     getBroadcastState() { return _getLastBroadcastState(); }
   };
 
+  try {
+    const macroName = "ViNarrat: Rejoin";
+    const existing = game.macros.filter(m => m.name === macroName);
+    if (!existing.length) {
+      await Macro.create({
+        name: macroName,
+        type: "script",
+        scope: "global",
+        img: "icons/svg/dice-target.svg",
+        command: "game.freevisualnovel.rejoin()",
+        ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER },
+        flags: { "free-visual-novel": { version: game.modules.get("free-visual-novel")?.version } }
+      });
+      console.log("FreeVN | Created macro:", macroName);
+    }
+  } catch(e) { console.warn("FreeVN | Failed to create macro:", e); }
+
   const stored = game.settings?.get("free-visual-novel", "broadcastStore");
   console.log("FreeVN | ready: broadcastStore", stored?.broadcasting, !!stored);
   if (stored && stored.broadcasting) {
