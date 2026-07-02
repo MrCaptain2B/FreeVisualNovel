@@ -237,8 +237,8 @@ Hooks.once("ready", async function() {
   });
 });
 
-Hooks.on("chatMessage", (message, text) => {
-  if (text.startsWith("/vnreq ")) {
+Hooks.on("chatMessage", (chatLog, message, text) => {
+  if (text?.startsWith("/vnreq ")) {
     const reqText = text.slice(7).trim();
     if (reqText && ui.freevisualnovel) ui.freevisualnovel.addRequest(reqText, "normal");
     return false;
