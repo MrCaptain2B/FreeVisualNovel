@@ -667,12 +667,6 @@ proto._bindScenePanel = function() {
       game.settings?.set("free-visual-novel", "themeBg", this._themeBg);
       this._applyTheme();
     });
-    html.querySelector(".vn-theme-accent")?.addEventListener("input", (ev) => {
-      this._themeAccent = ev.target.value;
-      if (this._data) { this._data.themeAccent = this._themeAccent; _saveData(this._data); }
-      game.settings?.set("free-visual-novel", "themeAccent", this._themeAccent);
-      this._applyTheme();
-    });
 
     const _saveDialogSetting = (key, value) => {
       game.settings?.set("free-visual-novel", key, value);
