@@ -661,13 +661,6 @@ proto._bindScenePanel = function() {
       if (this._data) { this._data.defaultPortraitScale = this._defaultPortraitScale; _saveData(this._data); }
     });
 
-    html.querySelector(".vn-theme-bg")?.addEventListener("input", (ev) => {
-      this._themeBg = ev.target.value;
-      if (this._data) { this._data.themeBg = this._themeBg; _saveData(this._data); }
-      game.settings?.set("free-visual-novel", "themeBg", this._themeBg);
-      this._applyTheme();
-    });
-
     const _saveDialogSetting = (key, value) => {
       game.settings?.set("free-visual-novel", key, value);
     };
@@ -730,11 +723,6 @@ proto._bindScenePanel = function() {
       await this.render();
     });
 
-    html.querySelector(".vn-scene-toggle-bg")?.addEventListener("click", () => {
-      this._hideBg = !this._hideBg;
-      this.render();
-    });
-
     html.querySelector(".vn-dialog-fontsize")?.addEventListener("input", (ev) => {
       this._dialog.fontSize = parseInt(ev.target.value) || 16;
       _saveDialogSetting("dialogFontSize", this._dialog.fontSize);
@@ -748,7 +736,7 @@ proto._bindScenePanel = function() {
       game.settings?.set("free-visual-novel", "speakerFontSize", this._speakerFontSize);
       const val = ev.target.parentElement?.querySelector(".vn-dialog-val");
       if (val) val.textContent = this._speakerFontSize + "px";
-      document.querySelectorAll(".vn-dialog-speaker").forEach(el => {
+      document.querySelectorAll(".vn-speaker-indicator").forEach(el => {
         el.style.fontSize = this._speakerFontSize + "px";
       });
     });
@@ -759,10 +747,20 @@ proto._bindScenePanel = function() {
       await this.render();
     });
 
+    html.querySelector(".vn-ds-current")?.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const sel = ev.currentTarget.closest(".vn-ds-select");
+      if (sel) sel.classList.toggle("vn-open");
+    });
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".vn-ds-select.vn-open").forEach(el => el.classList.remove("vn-open"));
+    }, { once: false });
     html.querySelectorAll(".vn-ds-opt").forEach(btn => {
       btn.addEventListener("click", async (ev) => {
         this._dialog.dialogStyle = ev.currentTarget.dataset.style;
         game.settings?.set("free-visual-novel", "dialogStyle", this._dialog.dialogStyle);
+        const sel = ev.currentTarget.closest(".vn-ds-select");
+        if (sel) sel.classList.remove("vn-open");
         await this.render();
       });
     });

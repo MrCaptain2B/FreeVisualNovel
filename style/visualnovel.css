@@ -252,46 +252,28 @@
 .vn-sb-live { color: var(--vn-accent); font-size: .55rem; margin-left: auto; flex-shrink: 0; }
 .vn-sb-live-off { visibility: hidden; }
 
-/* ─── SPEAKER INDICATORS (per style) ─── */
-
-/* Classic+ — pill above the box */
-.vn-speaker-pill {
+/* ─── SPEAKER INDICATOR (independent, outside dialog box) ─── */
+.vn-speaker-indicator {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--vn-accent);
-  color: #0d0d1a;
+  z-index: 9;
+  font-weight: 700;
+  pointer-events: none;
+  white-space: nowrap;
   padding: 3px 16px;
-  border-radius: 6px 6px 0 0;
-  z-index: 9;
-  font-weight: 700;
-  letter-spacing: .3px;
-  pointer-events: none;
-  white-space: nowrap;
 }
-.vn-dialog-dual .vn-speaker-pill {
-  left: 20px;
-  transform: none;
-}
-
-/* Bold — plaque above the box */
-.vn-speaker-plaque {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+.vn-si-classic {
   background: var(--vn-accent);
   color: #0d0d1a;
-  padding: 4px 16px 3px;
   border-radius: 6px 6px 0 0;
-  z-index: 9;
-  font-weight: 700;
-  letter-spacing: .5px;
-  pointer-events: none;
-  white-space: nowrap;
+  letter-spacing: .3px;
 }
-.vn-dialog-dual .vn-speaker-plaque {
-  left: 20px;
-  transform: none;
+.vn-si-bold {
+  background: var(--vn-accent);
+  color: #0d0d1a;
+  border-radius: 6px 6px 0 0;
+  letter-spacing: .5px;
 }
 
 /* Manifestation — system prompt inside the box */
@@ -347,6 +329,13 @@
   border-radius: 0 14px 14px 0;
   padding: 18px 24px 18px 20px;
 }
+/* Right side bold box — blue accent, mirrored */
+.vn-dialog-right.vn-ds-bold {
+  border-left: none;
+  border-right: 4px solid #3498db;
+  border-radius: 14px 0 0 14px;
+  padding: 18px 20px 18px 24px;
+}
 
 /* Manifestation — dashed line, gradient bg, serif text */
 .vn-ds-manifest {
@@ -374,7 +363,7 @@
 }
 
 .vn-dialog-content {
-  font-size: 1rem;
+  font-size: inherit;
   line-height: 1.6;
   color: #f0e6d0;
   word-wrap: break-word;
@@ -715,17 +704,29 @@
   background: rgba(255,255,255,.08); color: #ccc; border: none;
   border-radius: 4px; padding: 4px 12px; font-size: .8rem; cursor: pointer;
   min-width: 120px; text-align: left;
+  display: flex; align-items: center; gap: 6px;
 }
 .vn-ds-current:hover { background: rgba(255,255,255,.18); color: #fff; }
+.vn-ds-arrow { font-size: .7rem; opacity: .5; pointer-events: none; }
 .vn-ds-options {
-  display: flex; gap: 2px;
+  display: none;
+  position: absolute; top: 100%; left: 0; margin-top: 4px;
+  flex-direction: column; gap: 2px;
+  background: rgba(20,20,35,.95);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 25;
+  min-width: 140px;
 }
+.vn-ds-select.vn-open .vn-ds-options { display: flex; }
 .vn-ds-opt {
-  background: rgba(255,255,255,.06); color: #999; border: none;
-  border-radius: 4px; padding: 4px 10px; font-size: .75rem; cursor: pointer;
+  width: 100%; border: none; background: transparent;
+  color: #ccc; font-size: .8rem; cursor: pointer;
+  padding: 6px 12px; text-align: left;
   transition: background .15s, color .15s;
 }
-.vn-ds-opt:hover { background: rgba(255,255,255,.12); color: #fff; }
+.vn-ds-opt:hover { background: rgba(255,255,255,.1); color: #fff; }
 .vn-ds-opt-active { background: rgba(var(--vn-accent-rgb),0.2); color: var(--vn-accent); }
 .vn-scene-section input[type="color"] {
   width: 30px; height: 26px; padding: 0; border: none;
