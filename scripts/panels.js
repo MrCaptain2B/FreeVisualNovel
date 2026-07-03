@@ -182,8 +182,6 @@ proto._bindMainUI = function() {
         this.render();
       }
     });
-      });
-    });
 
     // Emotion thumbs
     html.querySelectorAll(".vn-emotion-thumb").forEach(btn => {
