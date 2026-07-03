@@ -33,11 +33,15 @@ function _rejoinVN() {
   _vnOpening = true;
   if (ui.freevisualnovel?.rendered) {
     const app = ui.freevisualnovel;
-    app._bg = _getLastBroadcastState().bg || "";
-    app._portraits = _getLastBroadcastState().portraits || [];
-    app._speaker = _getLastBroadcastState().speaker || "";
-    app._claimed = _getLastBroadcastState().claimed || {};
-    if (_getLastBroadcastState().dialog) app._dialog = Object.assign({}, app._dialog, _getLastBroadcastState().dialog);
+    const bs = _getLastBroadcastState();
+    app._bg = bs.bg || "";
+    app._portraits = bs.portraits || [];
+    app._speaker = bs.speaker || "";
+    app._claimed = bs.claimed || {};
+    if (bs.dialog) app._dialog = Object.assign({}, app._dialog, bs.dialog);
+    if (bs.speakerBarPos) app._speakerBarPos = bs.speakerBarPos;
+    if (bs.portraitMode) app._portraitMode = bs.portraitMode;
+    if (bs.splashShowNames !== undefined) app._splashShowNames = bs.splashShowNames;
     app.render();
     _vnOpening = false;
     return;
@@ -45,11 +49,15 @@ function _rejoinVN() {
   try {
     const app = new VisualNovelApp();
     ui.freevisualnovel = app;
-    app._bg = _getLastBroadcastState().bg || "";
-    app._portraits = _getLastBroadcastState().portraits || [];
-    app._speaker = _getLastBroadcastState().speaker || "";
-    app._claimed = _getLastBroadcastState().claimed || {};
-    if (_getLastBroadcastState().dialog) app._dialog = Object.assign({}, app._dialog, _getLastBroadcastState().dialog);
+    const bs = _getLastBroadcastState();
+    app._bg = bs.bg || "";
+    app._portraits = bs.portraits || [];
+    app._speaker = bs.speaker || "";
+    app._claimed = bs.claimed || {};
+    if (bs.dialog) app._dialog = Object.assign({}, app._dialog, bs.dialog);
+    if (bs.speakerBarPos) app._speakerBarPos = bs.speakerBarPos;
+    if (bs.portraitMode) app._portraitMode = bs.portraitMode;
+    if (bs.splashShowNames !== undefined) app._splashShowNames = bs.splashShowNames;
     app.render();
   } catch(e) {
     console.error("ViNarrat | Failed to rejoin:", e);
@@ -90,6 +98,9 @@ function _applyVNState(data) {
     if (data.themeBg) app._themeBg = data.themeBg;
     if (data.themeAccent) app._themeAccent = data.themeAccent;
     if (data.speakerFontSize) app._speakerFontSize = data.speakerFontSize;
+    if (data.speakerBarPos) app._speakerBarPos = data.speakerBarPos;
+    if (data.portraitMode) app._portraitMode = data.portraitMode;
+    if (data.splashShowNames !== undefined) app._splashShowNames = data.splashShowNames;
     app._applyTheme();
     app.render(true);
   } catch(e) {
@@ -148,6 +159,23 @@ Hooks.once("init", async function() {
     scope: "world", type: Number, default: 20, config: true,
     name: "Speaker Name Font Size",
     hint: "Font size in pixels (12-60)"
+  });
+  game.settings?.register("free-visual-novel", "speakerBarPos", {
+    scope: "world", type: String, default: "left", config: true,
+    name: "Speaker Bar Position",
+    hint: "Position of the speaker bar: left (vertical) or bottom (horizontal)",
+    choices: { left: "Left Sidebar", bottom: "Bottom Row" }
+  });
+  game.settings?.register("free-visual-novel", "portraitMode", {
+    scope: "world", type: String, default: "portrait", config: true,
+    name: "Portrait Display Mode",
+    hint: "Portrait: classic rectangles with nameplate. Splash: full-body vertical strips with fade mask.",
+    choices: { portrait: "Portrait (Rectangles)", splash: "Splash (Full-body strips)" }
+  });
+  game.settings?.register("free-visual-novel", "splashShowNames", {
+    scope: "world", type: Boolean, default: true, config: true,
+    name: "Show Splash Names",
+    hint: "Show character names on splash portraits (disabling gives cleaner look)"
   });
   game.settings?.register("free-visual-novel", "broadcastStore", {
     scope: "world", type: Object, default: null, config: false

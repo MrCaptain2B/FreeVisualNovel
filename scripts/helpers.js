@@ -66,7 +66,10 @@ export function _broadcastVNState(app, force) {
     dialog: app._dialog,
     themeBg: app._themeBg,
     themeAccent: app._themeAccent,
-    speakerFontSize: app._speakerFontSize
+    speakerFontSize: app._speakerFontSize,
+    speakerBarPos: app._speakerBarPos,
+    portraitMode: app._portraitMode,
+    splashShowNames: app._splashShowNames
   };
   console.log("FreeVN | Broadcasting to players");
   game.socket?.emit(SOCKET, payload);
@@ -150,6 +153,9 @@ Handlebars.registerHelper("eq", function(v1, v2) {
 });
 Handlebars.registerHelper("or", function(v1, v2) {
   return v1 || v2;
+});
+Handlebars.registerHelper("and", function(v1, v2) {
+  return v1 && v2;
 });
 Handlebars.registerHelper("add", function(a, b) {
   return (a || 0) + b;

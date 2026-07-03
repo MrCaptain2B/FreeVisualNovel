@@ -1,4 +1,4 @@
-import { _userCan, _saveData, _importActorPortraits, SOCKET, _FP } from './helpers.js';
+import { _userCan, _saveData, _loadData, _importActorPortraits, SOCKET, _FP } from './helpers.js';
 
 export function bindPanels(proto) {
 
@@ -6,27 +6,30 @@ proto._bindMainUI = function() {
     const html = this._el();
 
     if (_userCan("permManage")) {
+      // Locations
       html.querySelector(".vn-btn-locations")?.addEventListener("click", () => {
         this._showPanel = "locations";
         this.render();
       });
+      // Scene settings
       html.querySelector(".vn-btn-scene")?.addEventListener("click", () => {
         this._showPanel = "scene";
         this.render();
       });
-      html.querySelector(".vn-btn-toggle-bg")?.addEventListener("click", () => {
-        this._hideBg = !this._hideBg;
-        this.render();
+      // Presets (both Save & Load buttons)
+      html.querySelectorAll(".vn-btn-presets").forEach(btn => {
+        btn.addEventListener("click", () => {
+          this._showPanel = "presets";
+          this.render();
+        });
       });
-      html.querySelector(".vn-btn-presets")?.addEventListener("click", () => {
-        this._showPanel = "presets";
-        this.render();
-      });
+      // Toggle UI
       html.querySelector(".vn-btn-toggle-ui")?.addEventListener("click", () => {
         this._hideUI = !this._hideUI;
         this.render();
       });
-      html.querySelector(".vn-btn-broadcast")?.addEventListener("click", () => {
+      // Live toggle
+      html.querySelector(".vn-btn-live")?.addEventListener("click", () => {
         this._broadcasting = !this._broadcasting;
         if (this._broadcasting) {
           this._broadcast();
@@ -39,20 +42,23 @@ proto._bindMainUI = function() {
         this._showBroadcastMenu = false;
         this.render();
       });
-      html.querySelector(".vn-broadcast-toggle")?.addEventListener("click", (ev) => {
+      // Broadcast dropdown arrow
+      html.querySelector(".vn-bw .vn-console-btn-arrow")?.addEventListener("click", (ev) => {
         ev.stopPropagation();
         this._showBroadcastMenu = !this._showBroadcastMenu;
         this.render();
       });
-      html.querySelectorAll(".vn-broadcast-option").forEach(btn => {
+      // Broadcast menu options
+      html.querySelectorAll(".vn-bo").forEach(btn => {
         btn.addEventListener("click", (ev) => {
           this._inviteMode = ev.currentTarget.dataset.mode;
           this._showBroadcastMenu = false;
           this.render();
         });
       });
+      // Close broadcast menu on outside click
       const menuCloser = (ev) => {
-        if (this._showBroadcastMenu && !ev.target.closest(".vn-broadcast-wrapper")) {
+        if (this._showBroadcastMenu && !ev.target.closest(".vn-bw")) {
           this._showBroadcastMenu = false;
           this.render();
         }
@@ -62,45 +68,19 @@ proto._bindMainUI = function() {
       this._broadcastMenuCleanup = () => document.removeEventListener("click", menuCloser);
     }
 
+    // Portraits panel (GM + players)
     html.querySelector(".vn-btn-portraits")?.addEventListener("click", () => {
       this._showPanel = "portraits";
       this.render();
     });
 
-      // SCENARIO ENGINE (disabled)
-      // html.querySelector(".vn-btn-create-script")?.addEventListener("click", () => {
-      //   this._editScriptId = null;
-      //   this._tempSteps = [
-      //     {
-      //       type: "transition", label: "Opening", duration: 0,
-      //       transition: "fadeToBlack", transitionDuration: 0.5,
-      //       state: null
-      //     },
-      //     {
-      //       type: "scene", label: "Scene", duration: 0,
-      //       state: this._captureSceneState()
-      //     },
-      //     {
-      //       type: "transition", label: "Closing", duration: 0,
-      //       transition: "fadeToBlack", transitionDuration: 0.5,
-      //       state: null
-      //     }
-      //   ];
-      //   this._activeEditIdx = null;
-      //   this._showStepTypePicker = false;
-      //   this._showPanel = "scriptEdit";
-      //   this._editScriptName = "";
-      //   this.render();
-      // });
-      // html.querySelector(".vn-btn-load-script")?.addEventListener("click", () => {
-      //   this._showPanel = "scripts";
-      //   this.render();
-      // });
-      html.querySelector(".vn-btn-close")?.addEventListener("click", () => this.close());
+    // Close
+    html.querySelector(".vn-btn-close")?.addEventListener("click", () => this.close());
 
     this._bindPortraitDrag(html);
 
-    html.querySelectorAll(".vn-speaker-btn").forEach(btn => {
+    // Speaker bar buttons
+    html.querySelectorAll(".vn-sb-btn").forEach(btn => {
       btn.addEventListener("click", (ev) => {
         const id = ev.currentTarget.dataset.id;
         this._speaker = this._speaker === id ? "" : id;
@@ -112,23 +92,22 @@ proto._bindMainUI = function() {
       });
     });
 
-    html.querySelectorAll(".vn-port-scale-inline").forEach(slider => {
-      const idx = parseInt(slider.dataset.portIdx);
-      const updateScale = (val) => {
+    // Portrait hover controls (compact 20px)
+    html.querySelectorAll('.vn-hc-btn[data-action="flip"]').forEach(btn => {
+      btn.addEventListener("click", (ev) => {
+        const idx = parseInt(ev.currentTarget.dataset.portIdx);
         if (this._portraits[idx]) {
-          this._portraits[idx].scale = val;
+          this._portraits[idx].flip = !this._portraits[idx].flip;
           const el = document.querySelector(`.vn-portrait[data-port-idx="${idx}"]`);
           if (el) {
-            const flip = this._portraits[idx].flip ? "scaleX(-1)" : "";
-            el.style.transform = `scale(${val}) ${flip}`;
+            const p = this._portraits[idx];
+            el.style.transform = `scale(${p.scale}) ${p.flip ? "scaleX(-1)" : ""}`;
           }
-          const valEl = document.querySelector(`.vn-port-scale-val[data-port-idx="${idx}"]`);
-          if (valEl) valEl.textContent = val;
+          this._broadcast();
         }
-      };
-      slider.addEventListener("input", (ev) => updateScale(parseFloat(ev.currentTarget.value)));
+      });
     });
-    html.querySelectorAll(".vn-port-lock").forEach(btn => {
+    html.querySelectorAll('.vn-hc-btn[data-action="lock"]').forEach(btn => {
       btn.addEventListener("click", (ev) => {
         const idx = parseInt(ev.currentTarget.dataset.portIdx);
         if (this._portraits[idx]) {
@@ -137,6 +116,16 @@ proto._bindMainUI = function() {
         }
       });
     });
+    html.querySelectorAll('.vn-hc-btn[data-action="remove"]').forEach(btn => {
+      btn.addEventListener("click", (ev) => {
+        const idx = parseInt(ev.currentTarget.dataset.portIdx);
+        this._portraits.splice(idx, 1);
+        this.render();
+        this._broadcast();
+      });
+    });
+
+    // Emotion thumbs
     html.querySelectorAll(".vn-emotion-thumb").forEach(btn => {
       btn.addEventListener("click", (ev) => {
         const idx = parseInt(ev.currentTarget.dataset.portIdx);
@@ -174,49 +163,8 @@ proto._bindMainUI = function() {
         }
       });
     });
-    html.querySelectorAll(".vn-port-bring-forward").forEach(btn => {
-      btn.addEventListener("click", (ev) => {
-        const idx = parseInt(ev.currentTarget.dataset.portIdx);
-        if (idx < this._portraits.length - 1) {
-          [this._portraits[idx], this._portraits[idx+1]] = [this._portraits[idx+1], this._portraits[idx]];
-          this.render();
-          this._broadcast();
-        }
-      });
-    });
-    html.querySelectorAll(".vn-port-send-backward").forEach(btn => {
-      btn.addEventListener("click", (ev) => {
-        const idx = parseInt(ev.currentTarget.dataset.portIdx);
-        if (idx > 0) {
-          [this._portraits[idx-1], this._portraits[idx]] = [this._portraits[idx], this._portraits[idx-1]];
-          this.render();
-          this._broadcast();
-        }
-      });
-    });
-    html.querySelectorAll(".vn-port-remove").forEach(btn => {
-      btn.addEventListener("click", (ev) => {
-        const idx = parseInt(ev.currentTarget.dataset.portIdx);
-        this._portraits.splice(idx, 1);
-        this.render();
-        this._broadcast();
-      });
-    });
-    html.querySelectorAll(".vn-port-flip").forEach(btn => {
-      btn.addEventListener("click", (ev) => {
-        const idx = parseInt(ev.currentTarget.dataset.portIdx);
-        if (this._portraits[idx]) {
-          this._portraits[idx].flip = !this._portraits[idx].flip;
-          const el = document.querySelector(`.vn-portrait[data-port-idx="${idx}"]`);
-          if (el) {
-            const p = this._portraits[idx];
-            el.style.transform = `scale(${p.scale}) ${p.flip ? "scaleX(-1)" : ""}`;
-          }
-          this._broadcast();
-        }
-      });
-    });
 
+    // Attention buttons
     html.querySelectorAll(".vn-attention-btn").forEach(btn => {
       btn.addEventListener("click", (ev) => {
         const idx = parseInt(ev.currentTarget.dataset.portIdx);
@@ -233,6 +181,7 @@ proto._bindMainUI = function() {
       });
     });
 
+    // Approve buttons (GM)
     html.querySelectorAll(".vn-approve-btn").forEach(btn => {
       btn.addEventListener("click", (ev) => {
         const idx = parseInt(ev.currentTarget.dataset.portIdx);
@@ -245,7 +194,8 @@ proto._bindMainUI = function() {
       });
     });
 
-    html.querySelectorAll(".vn-request-resolve")?.forEach(btn => {
+    // Request resolve
+    html.querySelectorAll(".vn-request-resolve").forEach(btn => {
       btn.addEventListener("click", (ev) => {
         const id = ev.currentTarget.dataset.id;
         this._requests = this._requests.filter(r => r.id !== id);
@@ -722,11 +672,9 @@ proto._bindScenePanel = function() {
       await this.render();
     });
 
-    html.querySelector(".vn-dialog-enable-toggle")?.addEventListener("click", async (ev) => {
-      const newVal = !game.settings?.get("free-visual-novel", "dialogEnabled");
-      ev.currentTarget.textContent = newVal ? "On" : "Off";
-      await game.settings?.set("free-visual-novel", "dialogEnabled", newVal);
-      await this.render();
+    html.querySelector(".vn-scene-toggle-bg")?.addEventListener("click", () => {
+      this._hideBg = !this._hideBg;
+      this.render();
     });
 
     html.querySelector(".vn-dialog-fontsize")?.addEventListener("input", (ev) => {
@@ -814,6 +762,51 @@ proto._bindPresetsPanel = function() {
     });
 
     html.querySelector(".vn-presets-import")?.addEventListener("click", () => this._importPreset());
+};
+
+proto._exportPreset = async function(presetId) {
+  const preset = this._data?.presets?.find(p => p.id === presetId);
+  if (!preset) return ui.notifications?.error("Preset not found");
+  const out = { name: preset.name, version: 1, bg: preset.bg || null, bgBrightness: preset.bgBrightness, hideBg: !!preset.hideBg, hideUI: !!preset.hideUI, speaker: preset.speaker, dialog: preset.dialog, speakerFontSize: preset.speakerFontSize, themeBg: preset.themeBg, themeAccent: preset.themeAccent, currentLocationId: preset.currentLocationId || null, portraits: [] };
+  for (const sp of (preset.portraits || [])) {
+    const orig = this._data?.portraits?.find(op => op.id === sp.portraitId);
+    if (!orig) continue;
+    out.portraits.push({ portraitId: sp.portraitId, name: orig.name, title: orig.title, image: orig.image || null, images: orig.images || [], _stageX: sp.x, _stageY: sp.y, _stageScale: sp.scale, _stageFlip: sp.flip, _stageEmotion: sp.emotion });
+  }
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  const fname = `${preset.name.replace(/[^a-z0-9_-]/gi, "_")}.json`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+  ui.notifications?.info(`Preset "${preset.name}" exported`);
+};
+proto._importPreset = function() {
+  const input = document.createElement("input");
+  input.type = "file"; input.accept = ".json";
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const preset = JSON.parse(await file.text());
+      if (!preset.name || !preset.version) return ui.notifications?.error("Invalid preset file");
+      if (!this._data) this._data = await _loadData();
+      if (!this._data.presets) this._data.presets = [];
+      this._data.nextPresetId ||= 1;
+      const newPreset = { id: String(this._data.nextPresetId++), name: preset.name, bg: preset.bg || "", bgBrightness: preset.bgBrightness??1, hideBg: !!preset.hideBg, hideUI: !!preset.hideUI, speaker: preset.speaker||"", dialog: preset.dialog||{}, speakerFontSize: preset.speakerFontSize||20, themeBg: preset.themeBg||"#0d0d1a", themeAccent: preset.themeAccent||"#f0c040", currentLocationId: preset.currentLocationId || null, portraits: [] };
+      for (const sp of (preset.portraits || [])) {
+        const match = this._data.portraits.find(p => p.id === sp.portraitId || p.name === sp.name);
+        const pid = match ? match.id : null;
+        newPreset.portraits.push({ portraitId: pid || sp.portraitId, x: sp._stageX??50, y: sp._stageY??200, scale: sp._stageScale??1, flip: sp._stageFlip??false, emotion: sp._stageEmotion??0 });
+      }
+      this._data.presets.push(newPreset);
+      await _saveData(this._data);
+      this.render();
+      const missing = newPreset.bg && !this._data.locations?.find(l => l.file === newPreset.bg);
+      ui.notifications?.info(`Preset "${preset.name}" imported${missing ? " (background path may not exist in this world)" : ""}`);
+    } catch(e) { console.error("FVN | Import error:", e); ui.notifications?.error("Failed to import preset"); }
+  };
+  input.click();
 };
 
 } // end bindPanels

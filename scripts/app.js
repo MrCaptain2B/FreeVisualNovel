@@ -70,6 +70,9 @@ class VisualNovelApp extends _AppBase {
     this._inviteMode = "all";
     this._showBroadcastMenu = false;
     this._showInviteMenu = false;
+    this._speakerBarPos = game.settings?.get("free-visual-novel", "speakerBarPos") || "left";
+    this._portraitMode = game.settings?.get("free-visual-novel", "portraitMode") || "portrait";
+    this._splashShowNames = game.settings?.get("free-visual-novel", "splashShowNames") !== false;
     this._dialog = {
       width: 65,
       height: 160,
@@ -288,6 +291,7 @@ class VisualNovelApp extends _AppBase {
     const onlinePlayers = [...game.users].filter(u => u.active && !u.isGM && !_roleCan(u.role, "permManage")).map(u => ({ id: u.id, name: u.name }));
     return {
       bg: this._hideBg ? "" : this._enc(this._bg || ""),
+      hideBg: this._hideBg,
       hideUI: this._hideUI,
       portraits,
       speaker: speakerPortrait ? speakerPortrait.name : "",
@@ -322,6 +326,9 @@ class VisualNovelApp extends _AppBase {
       dialog: this._dialog,
       dialogEnabled: game.settings?.get("free-visual-novel", "dialogEnabled") !== false,
       speakerFontSize: this._speakerFontSize,
+      speakerBarPos: this._speakerBarPos,
+      portraitMode: this._portraitMode,
+      splashShowNames: this._splashShowNames,
       themeBg: this._themeBg,
       themeAccent: this._themeAccent,
       defaultPortraitScale: this._defaultPortraitScale,

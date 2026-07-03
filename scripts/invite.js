@@ -8,7 +8,7 @@ proto._buildInviteUI = function() {
     if (this._inviteMenu) { this._inviteMenu.remove(); this._inviteMenu = null; }
     this._inviteMenuCleanup?.();
 
-    const toolbar = this.element.querySelector(".vn-gm-toolbar");
+    const toolbar = this.element.querySelector(".vn-console");
     if (!toolbar) return;
 
     const btn = document.createElement("button");

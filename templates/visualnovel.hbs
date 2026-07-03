@@ -6,11 +6,12 @@
   <div class="vn-bg vn-bg-default" style="filter: brightness({{bgBrightness}});"></div>
   {{/if}}
 
-  {{!-- ─────────── MAIN STAGE ─────────── --}}
   <div class="vn-content">
 
   {{#unless hideUI}}
-  <div class="vn-stage-area">
+
+  {{!-- Stage area (portraits) --}}
+  <div class="vn-stage-area vn-stage-{{portraitMode}}">
     {{#each portraits}}
     <div class="vn-portrait {{#if this.locked}}vn-portrait-locked{{/if}} {{#if this.selected}}vn-selected{{/if}} {{#if this.isClaimed}}vn-claimed{{/if}}" data-port-idx="{{@index}}"
          style="left: {{this.x}}px; top: {{this.y}}px;
@@ -35,71 +36,79 @@
           <div class="vn-portrait-placeholder">{{this.name}}</div>
           {{/if}}
         </div>
+        {{#if (and splashShowNames (eq portraitMode "splash"))}}
+        <div class="vn-splash-name">{{this.name}}</div>
+        {{/if}}
         {{#if this.isMyPortrait}}
         <button class="vn-attention-btn {{#if this.isClaimed}}vn-attention-active{{/if}}" data-port-idx="{{this.index}}" title="Attention">{{#if this.isClaimed}}<i class="fas fa-check-circle"></i>{{else}}<i class="fas fa-hand-paper"></i>{{/if}}</button>
         {{/if}}
         {{#if canManage}}
         {{#if this.isClaimed}}
-        <button class="vn-approve-btn" data-port-idx="{{this.index}}" title="Approve as speaker"><i class="fas fa-check"></i></button>
+        <button class="vn-approve-btn" data-port-idx="{{this.index}}" title="Approve"><i class="fas fa-check"></i></button>
         {{/if}}
+        {{!-- Compact hover controls --}}
+        <div class="vn-port-hover-controls">
+          <button class="vn-hc-btn" data-action="flip" data-port-idx="{{this.index}}" title="Flip"><i class="fas fa-arrows-alt-h"></i></button>
+          <button class="vn-hc-btn" data-action="lock" data-port-idx="{{this.index}}" title="{{#if this.locked}}Unlock{{else}}Lock{{/if}}"><i class="fas {{#if this.locked}}fa-lock{{else}}fa-unlock{{/if}}"></i></button>
+          <button class="vn-hc-btn vn-hc-del" data-action="remove" data-port-idx="{{this.index}}" title="Remove"><i class="fas fa-times"></i></button>
+        </div>
         {{/if}}
       </div>
     </div>
     {{/each}}
   </div>
 
-  {{#if dialog.showSpeaker}}
-  {{#if speaker}}
-  <div class="vn-speaker-indicator">
-    <span class="vn-speaker-name" style="font-size: {{speakerFontSize}}px;">{{speaker}}</span>
-  </div>
-  {{/if}}
-  {{/if}}
-
+  {{!-- Speaker bar --}}
+  {{#if canManage}}
   {{#unless playback}}
-  {{#if selectedPortrait}}
-  {{#if isGM}}
-  <div class="vn-portrait-controls">
-    <button class="vn-port-prev" title="Previous portrait"><i class="fas fa-chevron-left"></i></button>
-    <span class="vn-controls-name">{{selectedPortrait.name}}</span>
-    <button class="vn-port-next" title="Next portrait"><i class="fas fa-chevron-right"></i></button>
-    <input class="vn-port-scale-inline" type="range" min="0.3" max="3" step="0.1" value="{{selectedPortrait.scale}}" data-port-idx="{{selectedPortrait.index}}">
-    <span class="vn-port-scale-val" data-port-idx="{{selectedPortrait.index}}">{{selectedPortrait.scale}}</span>
-    <button class="vn-port-bring-forward" data-port-idx="{{selectedPortrait.index}}" title="Bring Forward"><i class="fas fa-chevron-up"></i></button>
-    <button class="vn-port-send-backward" data-port-idx="{{selectedPortrait.index}}" title="Send Backward"><i class="fas fa-chevron-down"></i></button>
-    <button class="vn-port-flip" data-port-idx="{{selectedPortrait.index}}" title="Flip horizontally"><i class="fas fa-arrows-alt-h"></i></button>
-    <button class="vn-port-lock {{#if selectedPortrait.locked}}vn-locked{{/if}}" data-port-idx="{{selectedPortrait.index}}" title="{{#if selectedPortrait.locked}}Unlock{{else}}Lock{{/if}}">
-      <i class="fas {{#if selectedPortrait.locked}}fa-lock{{else}}fa-unlock{{/if}}"></i>
+  {{#if portraits.length}}
+  <div class="vn-speaker-bar vn-speaker-{{speakerBarPos}}">
+    {{#each portraits}}
+    <button class="vn-sb-btn {{#if this.speaking}}vn-sb-active{{/if}} {{#if this.isClaimed}}vn-sb-claimed{{/if}} {{#if this.userId}}vn-sb-player{{else}}vn-sb-npc{{/if}}" data-id="{{this.id}}">
+      <div class="vn-sb-avatar"><i class="fas fa-user"></i></div>
+      <div class="vn-sb-info">
+        <div class="vn-sb-name">{{this.name}}</div>
+        {{#if this.title}}<div class="vn-sb-title">{{this.title}}</div>{{/if}}
+      </div>
+      {{#if this.speaking}}<div class="vn-sb-live"><i class="fas fa-circle"></i></div>{{/if}}
     </button>
-    <button class="vn-port-remove" data-port-idx="{{selectedPortrait.index}}" title="Remove"><i class="fas fa-times"></i></button>
+    {{/each}}
   </div>
-  {{/if}}
   {{/if}}
   {{/unless}}
+  {{/if}}
 
+  {{!-- DIALOG BOX --}}
   {{#if dialogEnabled}}
   {{#if (eq dialog.mode 2)}}
   <div class="vn-dialog-dual" style="bottom: {{dialog.yOffset}}px;">
-    <div class="vn-dialog-box vn-dialog-left" style="position: absolute; left: 20px; right: auto; top: auto; bottom: 0; transform: none; width: calc({{dialog.width}}% / 2 - 30px); height: {{dialog.height}}px; opacity: {{dialog.opacity}}; font-size: {{dialog.fontSize}}px; text-align: {{dialog.align}};">
-      {{#if dialog.showSpeaker}}{{#if speaker}}<div class="vn-dialog-speaker">{{speaker}}</div>{{/if}}{{/if}}
-      <div class="vn-dialog-content" data-side="left">{{dialog.leftText}}</div>
+    <div class="vn-dialog-box vn-dialog-left">
+      <div class="vn-dlg-ornament-tr"></div>
+      <div class="vn-dlg-ornament-bl"></div>
+      <div class="vn-dlg-ornament-br"></div>
+      {{#if dialog.showSpeaker}}{{#if speaker}}<div class="vn-dlg-speaker"><i class="fas fa-microphone" style="font-size:.7em;margin-right:6px;opacity:.5"></i>{{speaker}}</div>{{/if}}{{/if}}
+      <div class="vn-dlg-content" data-side="left">{{dialog.leftText}}</div>
     </div>
-    <div class="vn-dialog-box vn-dialog-right" style="position: absolute; left: auto; right: 20px; top: auto; bottom: 0; transform: none; width: calc({{dialog.width}}% / 2 - 30px); height: {{dialog.height}}px; opacity: {{dialog.opacity}}; font-size: {{dialog.fontSize}}px; text-align: {{dialog.align}};">
-      {{#if dialog.showSpeaker}}{{#if speaker}}<div class="vn-dialog-speaker">{{speaker}}</div>{{/if}}{{/if}}
-      <div class="vn-dialog-content" data-side="right">{{dialog.text}}</div>
+    <div class="vn-dialog-box vn-dialog-right">
+      <div class="vn-dlg-ornament-tr"></div>
+      <div class="vn-dlg-ornament-bl"></div>
+      <div class="vn-dlg-ornament-br"></div>
+      {{#if dialog.showSpeaker}}{{#if speaker}}<div class="vn-dlg-speaker"><i class="fas fa-microphone" style="font-size:.7em;margin-right:6px;opacity:.5"></i>{{speaker}}</div>{{/if}}{{/if}}
+      <div class="vn-dlg-content" data-side="right">{{dialog.text}}</div>
     </div>
   </div>
   {{else}}
-  <div class="vn-dialog-box" style="position: absolute; left: 50%; transform: translateX(-50%); width: {{dialog.width}}%; height: {{dialog.height}}px; opacity: {{dialog.opacity}}; text-align: {{dialog.align}}; font-size: {{dialog.fontSize}}px; bottom: {{dialog.yOffset}}px;">
-    {{#if dialog.showSpeaker}}{{#if speaker}}<div class="vn-dialog-speaker">{{speaker}}</div>{{/if}}{{/if}}
-    <div class="vn-dialog-content" data-side="single">{{dialog.text}}</div>
+  <div class="vn-dialog-box" style="bottom: {{dialog.yOffset}}px;">
+    <div class="vn-dlg-ornament-tr"></div>
+    <div class="vn-dlg-ornament-bl"></div>
+    <div class="vn-dlg-ornament-br"></div>
+    {{#if dialog.showSpeaker}}{{#if speaker}}<div class="vn-dlg-speaker"><i class="fas fa-microphone" style="font-size:.7em;margin-right:6px;opacity:.5"></i>{{speaker}}</div>{{/if}}{{/if}}
+    <div class="vn-dlg-content" data-side="single">{{dialog.text}}</div>
   </div>
   {{/if}}
   {{/if}}
 
-  {{/unless}}
-
-  {{!-- Requests queue (managers only) --}}
+  {{!-- Requests --}}
   {{#if canManage}}
   {{#if requests.length}}
   <div class="vn-requests">
@@ -113,101 +122,71 @@
   {{/if}}
   {{/if}}
 
-  {{!-- Speaker Selector (managers only) --}}
+  {{!-- DIRECTOR CONSOLE (GM) --}}
   {{#if canManage}}
-  {{#unless playback}}
-  {{#if portraits.length}}
-  <div class="vn-speaker-bar">
-    {{#each portraits}}
-    <button class="vn-speaker-btn {{#if this.speaking}}vn-speaker-active{{/if}} {{#if this.isClaimed}}vn-speaker-claimed{{/if}} {{#if this.userId}}vn-speaker-player{{else}}vn-speaker-npc{{/if}}" data-id="{{this.id}}">
-      {{this.name}}
-    </button>
-    {{/each}}
-  </div>
-  {{/if}}
-  {{/unless}}
-
-  {{#if playback}}
-  {{#if showPanel}}
-  {{!-- Toolbar (panel open during playback) --}}
-  <div class="vn-gm-toolbar">
-    <button class="vn-btn-locations" title="Locations"><i class="fas fa-map-marked-alt"></i></button>
-    <button class="vn-btn-portraits" title="Portraits"><i class="fas fa-users"></i></button>
-    <button class="vn-btn-scene" title="Scene Control"><i class="fas fa-sliders-h"></i></button>
-    <button class="vn-btn-presets" title="Scene Presets"><i class="fas fa-bookmark"></i></button>
-    <button class="vn-btn-toggle-bg" title="Toggle Background"><i class="fas fa-image"></i></button>
-    <button class="vn-btn-toggle-ui" title="Toggle UI"><i class="fas fa-eye-slash"></i></button>
-    {{!-- SCENARIO ENGINE (disabled)
-    <button class="vn-btn-create-script" title="Create Script"><i class="fas fa-file-alt"></i></button>
-    <button class="vn-btn-load-script" title="Load Script"><i class="fas fa-folder-open"></i></button>
-    --}}
-    <div class="vn-broadcast-wrapper">
-      <button class="vn-btn-broadcast {{#if broadcasting}}vn-broadcast-active{{/if}}" title="{{#if broadcasting}}Stop{{else}}Start{{/if}} Broadcast">
-        <i class="fas {{#if broadcasting}}fa-stop-circle{{else}}fa-play-circle{{/if}}"></i>
+  <div class="vn-console">
+    {{!-- Live toggle --}}
+    <div class="vn-console-section vn-console-live">
+      <button class="vn-btn-live {{#if broadcasting}}vn-live-active{{/if}}" title="{{#if broadcasting}}Stop Broadcast{{else}}Start Broadcast{{/if}}">
+        <span class="vn-live-dot {{#if broadcasting}}vn-live-on{{/if}}"></span>
+        <span class="vn-live-label {{#if broadcasting}}vn-live-on{{/if}}">Live</span>
       </button>
-      <button class="vn-broadcast-toggle" title="Broadcast mode"><i class="fas fa-caret-down"></i></button>
-      {{#if showBroadcastMenu}}
-      <div class="vn-broadcast-menu">
-        <button class="vn-broadcast-option {{#if (eq inviteMode 'all')}}vn-broadcast-option-active{{/if}}" data-mode="all">{{#if (eq inviteMode 'all')}}<i class="fas fa-check"></i> {{/if}}All Online</button>
-        <button class="vn-broadcast-option {{#if (eq inviteMode 'stage')}}vn-broadcast-option-active{{/if}}" data-mode="stage">{{#if (eq inviteMode 'stage')}}<i class="fas fa-check"></i> {{/if}}Stage Only</button>
+    </div>
+    {{!-- Broadcast mode dropdown --}}
+    <div class="vn-console-section">
+      <div class="vn-bw">
+        <button class="vn-console-btn vn-console-btn-wide">
+          <i class="fas fa-broadcast-tower"></i>
+          <span>{{#if (eq inviteMode "all")}}All Players{{else}}Stage Only{{/if}}</span>
+        </button>
+        <button class="vn-console-btn vn-console-btn-arrow"><i class="fas fa-caret-up"></i></button>
+        {{#if showBroadcastMenu}}
+        <div class="vn-bm">
+          <button class="vn-bo {{#if (eq inviteMode "all")}}vn-bo-active{{/if}}" data-mode="all"><i class="fas fa-check"></i>All Players</button>
+          <button class="vn-bo {{#if (eq inviteMode "stage")}}vn-bo-active{{/if}}" data-mode="stage"><i class="fas fa-check" style="visibility:{{#if (eq inviteMode "stage")}}visible{{else}}hidden{{/if}}"></i>Stage Only</button>
+        </div>
+        {{/if}}
       </div>
-      {{/if}}
     </div>
-    <button class="vn-btn-close" title="Close"><i class="fas fa-times"></i></button>
+    <div class="vn-console-div"></div>
+    {{!-- Scene tools --}}
+    <div class="vn-console-section">
+      <button class="vn-console-btn vn-btn-locations" title="Locations"><i class="fas fa-image"></i></button>
+      <button class="vn-console-btn vn-btn-portraits" title="Cast"><i class="fas fa-users"></i></button>
+      <button class="vn-console-btn vn-btn-scene" title="Settings"><i class="fas fa-sliders-h"></i></button>
+    </div>
+    <div class="vn-console-div"></div>
+    {{!-- Presets --}}
+    <div class="vn-console-section">
+      <button class="vn-console-btn vn-btn-presets" title="Save"><i class="fas fa-bookmark"></i></button>
+      <button class="vn-console-btn vn-btn-presets" title="Load"><i class="fas fa-folder-open"></i></button>
+    </div>
+    <div class="vn-console-div"></div>
+    {{!-- Invite --}}
+    <div class="vn-console-div"></div>
+    <div class="vn-console-section">
+      <button class="vn-console-btn vn-btn-invite" title="Invite Player"><i class="fas fa-user-plus"></i></button>
+    </div>
+    <div class="vn-console-div"></div>
+    {{!-- Utility --}}
+    <div class="vn-console-section">
+      <button class="vn-console-btn vn-btn-toggle-ui" title="Toggle UI"><i class="fas fa-eye"></i></button>
+      <button class="vn-console-btn vn-btn-close vn-console-btn-danger" title="Close"><i class="fas fa-times"></i></button>
+    </div>
   </div>
   {{else}}
-  {{!-- SCENARIO ENGINE (disabled)
-  {{!-- Playback Controls --}}
-  <div class="vn-playback-bar">
-    <span class="vn-playback-name">{{playback.script.name}}</span>
-    <span class="vn-playback-progress">{{add playback.currentStep 1}} / {{playback.script.steps.length}}</span>
-    <div class="vn-playback-actions">
-      <button class="vn-playback-prev" title="Previous Step"><i class="fas fa-step-backward"></i></button>
-      <button class="vn-playback-play" title="{{#if playback.playing}}Pause{{else}}Play{{/if}}"><i class="fas {{#if playback.playing}}fa-pause{{else}}fa-play{{/if}}"></i></button>
-      <button class="vn-playback-next" title="Next Step"><i class="fas fa-step-forward"></i></button>
-      <button class="vn-playback-stop" title="Stop"><i class="fas fa-stop"></i></button>
-    </div>
-  </div>
-  --}}
-  {{/if}}
-  {{else}}
-  {{!-- Toolbar --}}
-  <div class="vn-gm-toolbar">
-    <button class="vn-btn-locations" title="Locations"><i class="fas fa-map-marked-alt"></i></button>
-    <button class="vn-btn-portraits" title="Portraits"><i class="fas fa-users"></i></button>
-    <button class="vn-btn-scene" title="Scene Control"><i class="fas fa-sliders-h"></i></button>
-    <button class="vn-btn-presets" title="Scene Presets"><i class="fas fa-bookmark"></i></button>
-    <button class="vn-btn-toggle-bg" title="Toggle Background"><i class="fas fa-image"></i></button>
-    <button class="vn-btn-toggle-ui" title="Toggle UI"><i class="fas fa-eye-slash"></i></button>
-    {{!-- SCENARIO ENGINE (disabled)
-    <button class="vn-btn-create-script" title="Create Script"><i class="fas fa-file-alt"></i></button>
-    <button class="vn-btn-load-script" title="Load Script"><i class="fas fa-folder-open"></i></button>
-    --}}
-    <div class="vn-broadcast-wrapper">
-      <button class="vn-btn-broadcast {{#if broadcasting}}vn-broadcast-active{{/if}}" title="{{#if broadcasting}}Stop{{else}}Start{{/if}} Broadcast">
-        <i class="fas {{#if broadcasting}}fa-stop-circle{{else}}fa-play-circle{{/if}}"></i>
-      </button>
-      <button class="vn-broadcast-toggle" title="Broadcast mode"><i class="fas fa-caret-down"></i></button>
-      {{#if showBroadcastMenu}}
-      <div class="vn-broadcast-menu">
-        <button class="vn-broadcast-option {{#if (eq inviteMode 'all')}}vn-broadcast-option-active{{/if}}" data-mode="all">{{#if (eq inviteMode 'all')}}<i class="fas fa-check"></i> {{/if}}All Online</button>
-        <button class="vn-broadcast-option {{#if (eq inviteMode 'stage')}}vn-broadcast-option-active{{/if}}" data-mode="stage">{{#if (eq inviteMode 'stage')}}<i class="fas fa-check"></i> {{/if}}Stage Only</button>
-      </div>
-      {{/if}}
-    </div>
-    <button class="vn-btn-close" title="Close"><i class="fas fa-times"></i></button>
-  </div>
-  {{/if}}
-  {{else}}
-  <div class="vn-gm-toolbar vn-player-bar">
+  {{!-- Player bar --}}
+  <div class="vn-player-bar">
     <span class="vn-player-label">ViNarrat</span>
     <button class="vn-btn-portraits" title="Portraits"><i class="fas fa-users"></i></button>
     <button class="vn-btn-close" title="Close"><i class="fas fa-times"></i></button>
   </div>
   {{/if}}
+
+  {{/unless}}
   </div>
 
-  {{!-- ─────────── FLOATING PANELS ─────────── --}}
+  {{!-- ─── FLOATING PANELS ─── --}}
   {{#if showPanel}}
   {{#if (eq showPanel "locations")}}
   <div class="vn-panel-floating vn-panel">
@@ -218,45 +197,31 @@
     <div class="vn-filter-row">
       <input class="vn-loc-search" type="text" placeholder="Search..." value="{{locSearchValue}}">
       <input class="vn-loc-tag-filter" type="text" placeholder="Filter by tag..." value="{{locTagSearchValue}}">
-      <select class="vn-loc-group-filter">
-        <option value="">All groups</option>
-        {{#each locGroups}}
-        <option value="{{this}}">{{this}}</option>
-        {{/each}}
-      </select>
+      <select class="vn-loc-group-filter"><option value="">All groups</option>{{#each locGroups}}<option value="{{this}}">{{this}}</option>{{/each}}</select>
     </div>
     <div class="vn-list-count">{{locations.length}} of {{locTotal}}</div>
     <div class="vn-loc-list">
       {{#each locations}}
       <div class="vn-loc-item" data-name="{{this.name}}" data-tags="{{this.tags}}" data-group="{{this.group}}">
         <div class="vn-loc-thumb"{{#if this.background}} style="background-image: url('{{this.background}}')"{{/if}}></div>
-        <div class="vn-loc-info">
-          <strong>{{this.name}}</strong>
-          {{#if this.group}}<span class="vn-item-group">{{this.group}}</span>{{/if}}
-          {{#if this.tags.length}}<span class="vn-loc-tags">{{this.tags}}</span>{{/if}}
-        </div>
-        <div class="vn-loc-actions">
-          <button class="vn-loc-select" data-id="{{this.id}}">Set Background</button>
-          <button class="vn-loc-edit" data-id="{{this.id}}" title="Edit"><i class="fas fa-pen"></i></button>
-          <button class="vn-loc-delete" data-id="{{this.id}}" title="Delete"><i class="fas fa-trash"></i></button>
-        </div>
+        <div class="vn-loc-info"><strong>{{this.name}}</strong>{{#if this.group}}<span class="vn-item-group">{{this.group}}</span>{{/if}}{{#if this.tags.length}}<span class="vn-loc-tags">{{this.tags}}</span>{{/if}}</div>
+        <div class="vn-loc-actions"><button class="vn-loc-select" data-id="{{this.id}}">Set Background</button><button class="vn-loc-edit" data-id="{{this.id}}"><i class="fas fa-pen"></i></button><button class="vn-loc-delete" data-id="{{this.id}}"><i class="fas fa-trash"></i></button></div>
       </div>
       {{/each}}
     </div>
     {{#if locRemaining}}<button class="vn-loc-show-more vn-show-more">Show {{locRemaining}} more</button>{{/if}}
     <div class="vn-loc-form">
-      <div class="vn-form-row">
-        <input class="vn-loc-f-name" type="text" placeholder="Location name">
-        <input class="vn-loc-f-group" type="text" placeholder="Group (optional)">
+      <hr>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+        <input class="vn-loc-f-name" type="text" placeholder="Name">
+        <input class="vn-loc-f-group" type="text" placeholder="Group">
+        <input class="vn-loc-f-bg" type="text" placeholder="Background path" style="flex:1">
+        <button class="vn-loc-fp"><i class="fas fa-folder-open"></i></button>
+        <input class="vn-loc-f-tags" type="text" placeholder="Tags (comma sep)" style="flex:1">
+        <input class="vn-loc-f-parent" type="text" placeholder="Parent location">
+        <input class="vn-loc-f-weather" type="text" placeholder="Weather">
       </div>
-      <div class="vn-form-row">
-        <input class="vn-loc-f-bg" type="text" placeholder="Background image path">
-        <button class="vn-loc-fp" type="button"><i class="fas fa-folder-open"></i></button>
-      </div>
-      <input class="vn-loc-f-tags" type="text" placeholder="Tags (comma separated)">
-      <input class="vn-loc-f-parent" type="text" placeholder="Parent location">
-      <input class="vn-loc-f-weather" type="text" placeholder="Weather">
-      <button class="vn-loc-save">{{#if editingLocId}}Update{{else}}Save{{/if}} Location</button>
+      <button class="vn-loc-save">Save</button>
     </div>
   </div>
   {{/if}}
@@ -270,218 +235,97 @@
     <div class="vn-filter-row">
       <input class="vn-port-search" type="text" placeholder="Search..." value="{{portSearchValue}}">
       <input class="vn-port-tag-filter" type="text" placeholder="Filter by tag..." value="{{portTagSearchValue}}">
-      <select class="vn-port-group-filter">
-        <option value="">All groups</option>
-        {{#each portGroups}}
-        <option value="{{this}}">{{this}}</option>
-        {{/each}}
-      </select>
+      <select class="vn-port-group-filter"><option value="">All groups</option>{{#each portGroups}}<option value="{{this}}">{{this}}</option>{{/each}}</select>
     </div>
     <div class="vn-list-count">{{allPortraits.length}} of {{portTotal}}</div>
     <div class="vn-port-list">
       {{#each allPortraits}}
       <div class="vn-port-item" data-name="{{this.name}}" data-title="{{this.title}}" data-tags="{{this.tags}}" data-group="{{this.group}}">
-        <div class="vn-port-avatar">
-          {{#if this.image}}<img src="{{this.image}}" loading="lazy">{{/if}}
-        </div>
-        <div class="vn-port-info">
-          <strong>{{this.name}}</strong>
-          {{#if this.group}}<span class="vn-item-group">{{this.group}}</span>{{/if}}
-          {{#if this.title}}<span class="vn-port-title">{{this.title}}</span>{{/if}}
-          {{#if this.tags.length}}<span class="vn-port-tags">{{this.tags}}</span>{{/if}}
-        </div>
-        {{#if ../canManage}}
-        <button class="vn-port-add-to-stage" data-id="{{this.id}}">Add to Stage</button>
-        {{/if}}
-        <button class="vn-port-edit" data-id="{{this.id}}" title="Edit"><i class="fas fa-pen"></i></button>
-        {{#if ../canManage}}
-        <button class="vn-port-delete" data-id="{{this.id}}" title="Delete"><i class="fas fa-trash"></i></button>
-        {{/if}}
+        <div class="vn-port-avatar">{{#if this.image}}<img src="{{this.image}}" loading="lazy">{{/if}}</div>
+        <div class="vn-port-info"><strong>{{this.name}}</strong>{{#if this.group}}<span class="vn-item-group">{{this.group}}</span>{{/if}}{{#if this.title}}<span class="vn-port-title">{{this.title}}</span>{{/if}}{{#if this.tags.length}}<span class="vn-port-tags">{{this.tags}}</span>{{/if}}</div>
+        {{#if ../canManage}}<button class="vn-port-add-to-stage" data-id="{{this.id}}">Add to Stage</button>{{/if}}
+        <button class="vn-port-edit" data-id="{{this.id}}"><i class="fas fa-pen"></i></button>
+        {{#if ../canManage}}<button class="vn-port-delete" data-id="{{this.id}}"><i class="fas fa-trash"></i></button>{{/if}}
       </div>
       {{/each}}
     </div>
     {{#if portRemaining}}<button class="vn-port-show-more vn-show-more">Show {{portRemaining}} more</button>{{/if}}
     {{#if canManage}}<button class="vn-port-import">Import from Actors</button>{{/if}}
     <div class="vn-port-form">
-      <div class="vn-form-row">
-        <input class="vn-port-f-name" type="text" placeholder="Portrait name">
-        <input class="vn-port-f-group" type="text" placeholder="Group (optional)">
+      <hr>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+        <input class="vn-port-f-name" type="text" placeholder="Name">
+        <input class="vn-port-f-group" type="text" placeholder="Group">
+        <input class="vn-port-f-title" type="text" placeholder="Title">
+        <input class="vn-port-f-tags" type="text" placeholder="Tags (comma sep)" style="flex:1">
+        <input class="vn-port-f-img" type="text" placeholder="Image path" style="flex:1">
+        <button class="vn-port-fp"><i class="fas fa-folder-open"></i></button>
+        <input class="vn-port-f-actor" type="text" placeholder="Actor ID">
+        <select class="vn-port-f-user"><option value="">No user</option>{{#each users}}<option value="{{this.id}}">{{this.name}}</option>{{/each}}</select>
       </div>
-      <div class="vn-form-row">
-        <input class="vn-port-f-title" type="text" placeholder="Title (optional)">
-        <input class="vn-port-f-tags" type="text" placeholder="Tags (comma separated)">
-      </div>
-      <div class="vn-form-row">
-        <input class="vn-port-f-img" type="text" placeholder="Default image path">
-        <button class="vn-port-fp" type="button"><i class="fas fa-folder-open"></i></button>
-      </div>
-      <div class="vn-port-emotions">
-        <label>Emotions (alternate images)</label>
-        <div class="vn-emotion-list"></div>
-        <button class="vn-emotion-add" type="button"><i class="fas fa-plus"></i> Add emotion</button>
-        <template class="vn-emotion-row-tpl">
-          <div class="vn-emotion-row">
-            <span class="vn-emotion-idx"></span>
-            <input class="vn-emotion-path" type="text" placeholder="Emotion image path">
-            <button class="vn-emotion-fp" type="button" title="Browse"><i class="fas fa-folder-open"></i></button>
-            <button class="vn-emotion-remove" type="button" title="Remove"><i class="fas fa-times"></i></button>
-          </div>
-        </template>
-      </div>
-      <input class="vn-port-f-actor" type="text" placeholder="Actor ID (optional)">
-      {{#if canManage}}
-      <div class="vn-form-row">
-        <span>Player</span>
-        <select class="vn-port-f-user">
-          <option value="">— None —</option>
-          {{#each users}}
-          <option value="{{this.id}}">{{this.name}}</option>
-          {{/each}}
-        </select>
-      </div>
-      {{/if}}
-      <button class="vn-port-save">{{#if editingPortId}}Update{{else}}Save{{/if}} Portrait</button>
+      <div class="vn-emotion-list"></div>
+      <template class="vn-emotion-row-tpl">
+        <div class="vn-emotion-row">
+          <span class="vn-emotion-idx">1.</span>
+          <input class="vn-emotion-path" type="text" placeholder="Emotion image path">
+          <button class="vn-emotion-fp"><i class="fas fa-folder-open"></i></button>
+          <button class="vn-emotion-remove"><i class="fas fa-times"></i></button>
+        </div>
+      </template>
+      <button class="vn-emotion-add">Add emotion (0/5)</button>
+      <button class="vn-port-save">Save</button>
     </div>
   </div>
   {{/if}}
 
   {{#if (eq showPanel "scene")}}
   <div class="vn-panel-floating vn-panel-scene vn-panel">
-    <div class="vn-panel-header">
-      <span class="vn-panel-title">Scene Settings</span>
-      <button class="vn-scene-back"><i class="fas fa-arrow-left"></i> Back</button>
+    <div class="vn-panel-header"><span class="vn-panel-title">Scene Settings</span><button class="vn-scene-back"><i class="fas fa-arrow-left"></i> Back</button></div>
+    <div class="vn-scene-section">
+      <label>Background</label>
+      <div class="vn-dg-setting"><span>Brightness</span><input class="vn-scene-brightness" type="range" min="0.2" max="2" step="0.05" value="{{bgBrightness}}"><span class="vn-dg-val">{{bgBrightness}}</span></div>
+      <div class="vn-dg-setting"><span>Hide</span><button class="vn-scene-toggle-bg">{{#if hideBg}}Hidden{{else}}Visible{{/if}}</button></div>
     </div>
     <div class="vn-scene-section">
-      <label>Background Brightness</label>
-      <input class="vn-scene-brightness" type="range" min="0.2" max="2" step="0.05" value="{{bgBrightness}}">
-    </div>
-    <div class="vn-scene-section">
-      <label>Theme Colors</label>
-      <div class="vn-dialog-setting">
-        <span>Background</span>
-        <input class="vn-theme-bg" type="color" value="{{themeBg}}">
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Accent</span>
-        <input class="vn-theme-accent" type="color" value="{{themeAccent}}">
-      </div>
+      <label>Theme</label>
+      <div class="vn-dg-setting"><span>Bg Color</span><input class="vn-theme-bg" type="color" value="{{themeBg}}"></div>
+      <div class="vn-dg-setting"><span>Accent</span><input class="vn-theme-accent" type="color" value="{{themeAccent}}"></div>
     </div>
     <div class="vn-scene-section">
       <label>Dialogue Box</label>
-      <div class="vn-dialog-setting">
-        <span>Width</span>
-        <input class="vn-dialog-width" type="range" min="30" max="100" step="1" value="{{dialog.width}}">
-        <span class="vn-dialog-val">{{dialog.width}}%</span>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Height</span>
-        <input class="vn-dialog-height" type="range" min="80" max="350" step="5" value="{{dialog.height}}">
-        <span class="vn-dialog-val">{{dialog.height}}px</span>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Opacity</span>
-        <input class="vn-dialog-opacity" type="range" min="0.2" max="1" step="0.05" value="{{dialog.opacity}}">
-        <span class="vn-dialog-val">{{dialog.opacity}}</span>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Align</span>
-        <div class="vn-dialog-align-group">
-          <button class="vn-dialog-align {{#if (eq dialog.align 'left')}}vn-align-active{{/if}}" data-align="left">Left</button>
-          <button class="vn-dialog-align {{#if (eq dialog.align 'center')}}vn-align-active{{/if}}" data-align="center">Center</button>
-          <button class="vn-dialog-align {{#if (eq dialog.align 'right')}}vn-align-active{{/if}}" data-align="right">Right</button>
-        </div>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Text</span>
-        <textarea class="vn-dialog-text" rows="3" placeholder="Type dialogue here...">{{dialog.text}}</textarea>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Speaker</span>
-        <button class="vn-dialog-speaker-toggle">{{#if dialog.showSpeaker}}Show{{else}}Hide{{/if}}</button>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Enable</span>
-        <button class="vn-dialog-enable-toggle">{{#if dialogEnabled}}On{{else}}Off{{/if}}</button>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Font size</span>
-        <input class="vn-dialog-fontsize" type="range" min="10" max="36" step="1" value="{{dialog.fontSize}}">
-        <span class="vn-dialog-val">{{dialog.fontSize}}px</span>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Mode</span>
-        <button class="vn-dialog-mode-toggle">{{#if (eq dialog.mode 2)}}Dual (2 boxes){{else}}Single + Speaker{{/if}}</button>
-      </div>
-      <div class="vn-dialog-setting">
-        <span>Y Offset</span>
-        <input class="vn-dialog-yoffset" type="range" min="20" max="300" step="5" value="{{dialog.yOffset}}">
-        <span class="vn-dialog-val">{{dialog.yOffset}}px</span>
-      </div>
-      {{#if (eq dialog.mode 2)}}
-      <div class="vn-dialog-setting">
-        <span>Left Text</span>
-        <textarea class="vn-dialog-lefttext" rows="3" placeholder="Type dialogue here...">{{dialog.leftText}}</textarea>
-      </div>
-      {{/if}}
+      <div class="vn-dg-setting"><span>Width</span><input class="vn-dialog-width" type="range" min="30" max="100" step="1" value="{{dialog.width}}"><span class="vn-dg-val">{{dialog.width}}%</span></div>
+      <div class="vn-dg-setting"><span>Height</span><input class="vn-dialog-height" type="range" min="80" max="350" step="5" value="{{dialog.height}}"><span class="vn-dg-val">{{dialog.height}}px</span></div>
+      <div class="vn-dg-setting"><span>Opacity</span><input class="vn-dialog-opacity" type="range" min="0.2" max="1" step="0.05" value="{{dialog.opacity}}"><span class="vn-dg-val">{{dialog.opacity}}</span></div>
+      <div class="vn-dg-setting"><span>Align</span><div class="vn-dg-align-group"><button class="vn-dg-align {{#if (eq dialog.align "left")}}vn-dg-aactive{{/if}}" data-align="left">Left</button><button class="vn-dg-align {{#if (eq dialog.align "center")}}vn-dg-aactive{{/if}}" data-align="center">Center</button><button class="vn-dg-align {{#if (eq dialog.align "right")}}vn-dg-aactive{{/if}}" data-align="right">Right</button></div></div>
+      <div class="vn-dg-setting"><span>Text</span><textarea class="vn-dialog-text" rows="2" placeholder="Type dialogue here...">{{dialog.text}}</textarea></div>
+      <div class="vn-dg-setting"><span>Speaker</span><button class="vn-dialog-speaker-toggle">{{#if dialog.showSpeaker}}Show{{else}}Hide{{/if}}</button></div>
+      <div class="vn-dg-setting"><span>Font size</span><input class="vn-dialog-fontsize" type="range" min="10" max="36" step="1" value="{{dialog.fontSize}}"><span class="vn-dg-val">{{dialog.fontSize}}px</span></div>
+      <div class="vn-dg-setting"><span>Mode</span><button class="vn-dialog-mode-toggle">{{#if (eq dialog.mode 2)}}Dual{{else}}Single{{/if}}</button></div>
+      <div class="vn-dg-setting"><span>Y Offset</span><input class="vn-dialog-yoffset" type="range" min="20" max="300" step="5" value="{{dialog.yOffset}}"><span class="vn-dg-val">{{dialog.yOffset}}px</span></div>
+      {{#if (eq dialog.mode 2)}}<div class="vn-dg-setting"><span>Left Text</span><textarea class="vn-dialog-lefttext" rows="2" placeholder="Type...">{{dialog.leftText}}</textarea></div>{{/if}}
     </div>
     <div class="vn-scene-section">
-      <label>Portrait Scale</label>
-      <div class="vn-dialog-setting">
-        <span>Scale</span>
-        <input class="vn-default-portrait-scale" type="range" min="0.3" max="3" step="0.1" value="{{defaultPortraitScale}}">
-        <span class="vn-dialog-val">{{defaultPortraitScale}}</span>
-      </div>
+      <label>Portrait</label>
+      <div class="vn-dg-setting"><span>Scale</span><input class="vn-default-portrait-scale" type="range" min="0.3" max="3" step="0.1" value="{{defaultPortraitScale}}"><span class="vn-dg-val">{{defaultPortraitScale}}</span></div>
     </div>
     <div class="vn-scene-section">
       <label>Speaker Box</label>
-      <div class="vn-dialog-setting">
-        <span>Font size</span>
-        <input class="vn-speaker-fontsize" type="range" min="12" max="60" step="1" value="{{speakerFontSize}}">
-        <span class="vn-dialog-val">{{speakerFontSize}}px</span>
-      </div>
+      <div class="vn-dg-setting"><span>Font size</span><input class="vn-speaker-fontsize" type="range" min="12" max="60" step="1" value="{{speakerFontSize}}"><span class="vn-dg-val">{{speakerFontSize}}px</span></div>
     </div>
   </div>
   {{/if}}
 
   {{#if (eq showPanel "presets")}}
   <div class="vn-panel-floating vn-panel">
-    <div class="vn-panel-header">
-      <span class="vn-panel-title">Scene Presets</span>
-      <button class="vn-presets-back"><i class="fas fa-arrow-left"></i> Back</button>
-    </div>
-    <div class="vn-presets-save-row">
-      <input class="vn-presets-name-input" type="text" placeholder="Preset name">
-      <button class="vn-presets-save-btn">Save Current</button>
-    </div>
+    <div class="vn-panel-header"><span class="vn-panel-title">Scene Presets</span><button class="vn-presets-back"><i class="fas fa-arrow-left"></i> Back</button></div>
+    <div class="vn-presets-save-row"><input class="vn-presets-name-input" type="text" placeholder="Preset name"><button class="vn-presets-save-btn">Save Current</button></div>
     <div class="vn-presets-list">
       {{#each presets}}
-      <div class="vn-presets-row">
-        <span>{{this.name}}</span>
-        <div class="vn-presets-actions">
-          <button class="vn-presets-load" data-id="{{this.id}}">Load</button>
-          <button class="vn-presets-export" data-id="{{this.id}}">Export</button>
-          <button class="vn-presets-delete" data-id="{{this.id}}"><i class="fas fa-trash"></i></button>
-        </div>
-      </div>
+      <div class="vn-presets-row"><span>{{this.name}}</span><div class="vn-presets-actions"><button class="vn-presets-load" data-id="{{this.id}}">Load</button><button class="vn-presets-export" data-id="{{this.id}}">Export</button><button class="vn-presets-delete" data-id="{{this.id}}"><i class="fas fa-trash"></i></button></div></div>
       {{/each}}
     </div>
     <button class="vn-presets-import"><i class="fas fa-file-import"></i> Import</button>
   </div>
   {{/if}}
-
-  {{!-- SCENARIO ENGINE (disabled)
-  {{#if (eq showPanel "scripts")}}
-  <div class="vn-panel-floating vn-panel">
-    ...
-  </div>
-  {{/if}}
-
-  {{#if (eq showPanel "scriptEdit")}}
-  <div class="vn-panel-floating vn-panel vn-panel-wide">
-    ...
-  </div>
-  {{/if}}
-  --}}
-
   {{/if}}
 </div>

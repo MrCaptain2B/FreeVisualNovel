@@ -12,6 +12,7 @@ proto._bindPortraitDrag = function(html) {
     const onClick = (ev) => {
       if (!this.element?.contains(ev.target)) return;
       if (ev.target.closest(".vn-portrait-controls")) return;
+      if (ev.target.closest(".vn-port-hover-controls")) return;
       if (ev.target.closest(".vn-dialog-box")) return;
       if (ev.target.closest(".vn-panel")) return;
       if (ev.target.closest("select")) return;
@@ -41,6 +42,7 @@ proto._bindPortraitDrag = function(html) {
       if (!portrait) return;
       if (portrait.locked) return;
       if (ev.target.closest(".vn-portrait-controls")) return;
+      if (ev.target.closest(".vn-port-hover-controls")) return;
       ev.preventDefault();
       el.style.transition = "none";
       const rect = container.getBoundingClientRect();
